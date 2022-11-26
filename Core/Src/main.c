@@ -775,7 +775,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, NRF1_PWR_Pin|ESP_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, NRF1_PWR_Pin|ESP_RST_Pin|RDA_PWR_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(NRF2_CS_GPIO_Port, NRF2_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ESP_PWR_GPIO_Port, ESP_PWR_Pin, GPIO_PIN_SET);
@@ -787,7 +790,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOD, NRF2_PWR_Pin|NRF1_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, NRF2_CS_Pin|EEPROM_CS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOG, NRF2_CSG2_Pin|EEPROM_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
@@ -795,8 +798,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, NRF2_CE_Pin|NRF1_CE_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : NRF1_PWR_Pin ESP_PWR_Pin ESP_RST_Pin */
-  GPIO_InitStruct.Pin = NRF1_PWR_Pin|ESP_PWR_Pin|ESP_RST_Pin;
+  /*Configure GPIO pins : NRF1_PWR_Pin ESP_PWR_Pin ESP_RST_Pin RDA_PWR_Pin */
+  GPIO_InitStruct.Pin = NRF1_PWR_Pin|ESP_PWR_Pin|ESP_RST_Pin|RDA_PWR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -808,18 +811,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : NRF2_CS_Pin LD3_Pin LD2_Pin */
+  GPIO_InitStruct.Pin = NRF2_CS_Pin|LD3_Pin|LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pins : ESP_IO0_Pin ESP_IO2_Pin */
   GPIO_InitStruct.Pin = ESP_IO0_Pin|ESP_IO2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LD3_Pin LD2_Pin */
-  GPIO_InitStruct.Pin = LD3_Pin|LD2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : NRF2_IRQ_Pin */
   GPIO_InitStruct.Pin = NRF2_IRQ_Pin;
@@ -834,8 +837,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : NRF2_CS_Pin EEPROM_CS_Pin USB_PowerSwitchOn_Pin */
-  GPIO_InitStruct.Pin = NRF2_CS_Pin|EEPROM_CS_Pin|USB_PowerSwitchOn_Pin;
+  /*Configure GPIO pins : NRF2_CSG2_Pin EEPROM_CS_Pin USB_PowerSwitchOn_Pin */
+  GPIO_InitStruct.Pin = NRF2_CSG2_Pin|EEPROM_CS_Pin|USB_PowerSwitchOn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

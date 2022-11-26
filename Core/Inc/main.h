@@ -77,6 +77,8 @@ void Error_Handler(void);
 #define RMII_RXD0_GPIO_Port GPIOC
 #define RMII_RXD1_Pin GPIO_PIN_5
 #define RMII_RXD1_GPIO_Port GPIOC
+#define NRF2_CS_Pin GPIO_PIN_1
+#define NRF2_CS_GPIO_Port GPIOB
 #define ESP_IO0_Pin GPIO_PIN_10
 #define ESP_IO0_GPIO_Port GPIOE
 #define ESP_IO2_Pin GPIO_PIN_12
@@ -97,8 +99,8 @@ void Error_Handler(void);
 #define STLK_TX_GPIO_Port GPIOD
 #define NRF2_PWR_Pin GPIO_PIN_11
 #define NRF2_PWR_GPIO_Port GPIOD
-#define NRF2_CS_Pin GPIO_PIN_2
-#define NRF2_CS_GPIO_Port GPIOG
+#define NRF2_CSG2_Pin GPIO_PIN_2
+#define NRF2_CSG2_GPIO_Port GPIOG
 #define EEPROM_CS_Pin GPIO_PIN_3
 #define EEPROM_CS_GPIO_Port GPIOG
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
@@ -133,6 +135,8 @@ void Error_Handler(void);
 #define RMII_TXD0_GPIO_Port GPIOG
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
+#define RDA_PWR_Pin GPIO_PIN_0
+#define RDA_PWR_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
