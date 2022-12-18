@@ -75,6 +75,10 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  uint8_t nrf1_tx[33];
+  uint8_t nrf1_rx[33] = {0};
+  uint8_t nrf2_tx[33];
+  uint8_t nrf2_rx[33] = {0};
 
   /* USER CODE END 1 */
 
@@ -111,34 +115,63 @@ int main(void)
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
 
+  NRF_powerDown();
+  NRF_powerDown_B();
 
+  HAL_Delay(500);
 
+  NRF_powerUp();
+  NRF_powerUp_B();
+
+  HAL_Delay(500);
+
+  printf("NRF1: 0x%02lx\n", NRF_powerCycle(HAL_Delay));
+  printf("NRF2: 0x%02lx\n", NRF_powerCycle_B(HAL_Delay));
+
+  NRF_configure(true);
+  NRF_configure_B(false);
 
   while(1)
   {
-	  NRF_powerDown();
-	  NRF_powerDown_B();
+	  sprintf((char*)nrf1_tx, "%032ld", HAL_GetTick());
+	  sprintf((char*)nrf2_tx, "%032ld", 0x7FFFFFFF - HAL_GetTick());
 
-	  HAL_Delay(1000);
+	  NRF_setW_TX_PAYLOAD(nrf1_tx, 32);
+	  NRF_set_W_ACK_PAYLOAD_B(0, nrf2_tx, 32);
 
-	  uint8_t status = NRF_getSTATUS();
-	  uint8_t statusB = NRF_getSTATUS_B();
+	  NRF_CEactivate_B();
+	  NRF_CEactivate();
+	  HAL_Delay(5);
+	  NRF_CEdeactivate_B();
+	  NRF_CEdeactivate();
 
-	  printf("STATUS 1: 0x%02x\n", status);
-	  printf("STATUS 2: 0x%02x\n", statusB);
+	  if(NRF_getIRQ())
+	  {
+		  printf("NRF1 IRQ\n");
+		  HAL_Delay(50);
+	  }
 
-	  NRF_powerUp();
-	  NRF_powerUp_B();
+	  if(NRF_getIRQ_B())
+	  {
+		  printf("NRF2 IRQ\n");
+		  HAL_Delay(50);
+	  }
 
-	  HAL_Delay(1000);
+	  uint8_t lng1 = NRF_postProcess(0, nrf1_rx);
+	  uint8_t lng2 = NRF_postProcess_B(0, nrf2_rx);
 
-	  status = NRF_getSTATUS();
-	  statusB = NRF_getSTATUS_B();
-	  status = NRF_getSTATUS();
-	  statusB = NRF_getSTATUS_B();
 
-	  printf("STATUS 1: 0x%02x\n", status);
-	  printf("STATUS 2: 0x%02x\n", statusB);
+	  if(lng1 && lng1 != (uint8_t)(-1))
+	  {
+		  printf("%s\n", nrf1_rx);
+		  HAL_Delay(50);
+	  }
+	  if(lng2 && lng2 != (uint8_t)(-1))
+	  {
+		  printf("%s\n", nrf2_rx);
+	  }
+
+	  HAL_Delay(500);
   }
 
   /* USER CODE END 2 */
