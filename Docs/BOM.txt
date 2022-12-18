@@ -1,0 +1,108 @@
+C1 2.2uF X7R 0805 3.3V min (audio, X7R may be not the best due to pizeoelectric noise)
+C2 2.2uF X7R 0805 3.3V min (audio, X7R may be not the best due to pizeoelectric noise))
+C3 100nF X7R 0805 3.3V min
+C4 TBD pF X7R 0805 3.3V min ('low pass' capacitor for OA feedback)
+C5 10uF X7R 0805 12V min - xV (optional for LM386 BYPASS)
+C6 50nF X7R 0805 12V min - xV
+C7 220uF THT 12V min - xV (electrolytic capacitor for speaker de/coupling (does not need to be exact, depends on R_L))
+C8 10uF X7R 0805 12V min - xV (to be placed alone when gain 200, in series with R9 = 1.2k for gain 50 (LM386 GAIN))
+C9 100nF X7R 0805 12V min - xV
+C10 100nF X7R 0805 12V min - xV
+C11 10uF X7R 0805 12V min - xV (to be placed alone when gain 200, in series with Rx = 1.2k for gain 50 (LM386 GAIN))
+C12 10uF X7R 0805 12V min - xV (optional for LM386 BYPASS)
+C13 50nF X7R 0805 12V min - xV
+C14 220uF THT 12V min - xV (electrolytic capacitor for speaker de/coupling (does not need to be exact, depends on R_L))
+C15 100nF X7R 0805 12V min - xV
+C16 220uF THT 12V min - xV (VCC debounc for PWM driver)
+C17 100nF X7R 0805 12V min - xV
+C18 220uF THT 12V min - xV (VCC debounc for PWM driver)
+C19 100nF X7R 0805 3.3V min - xV
+C20 100nF X7R 0805 3.3V min - xV
+C21 100nF X7R 0805 3.3V min - xV
+C22 100nF X7R 0805 3.3V min - xV
+
+
+IC1 25AA1024 EEPROM SO-08 (or any pin-compatible like 25AA080SN)
+IC4 LM386 (Audio Amplifier) SO-08
+IC5 LM386 (Audio Amplifier) SO-08
+IC1A + IC1B TL072 or any pin + voltage compatible general purpose OA
+
+JP1 - 2.54mm male pin header (2 positions - 1 row)
+JP2 - 2.54mm male pin header (3 positions - 1 row)
+JP3 - 2.54mm male pin header (3 positions - 1 row)
+JP4 - 2.54mm male pin header (3 positions - 1 row)
+JP5 - screw terminal 5.08mm  (4 positions)
+JP6 - 2.54mm male pin header (6 positions - 2 row)
+JP7 - 2.54mm male pin header (2 positions - 1 row)
+JP8 - 2.54mm male pin header (3 positions - 1 row)
+JP9 - 2.54mm male pin header (6 positions - 2 row)
+
+LED1 - 1206 (any LED operational under 1mA)
+LED1 - 1206 (any LED operational under 1mA)
+
+N - SMD button with footprint "DUAL-BTN" with four pads
+E - SMD button with footprint "DUAL-BTN" with four pads
+W - SMD button with footprint "DUAL-BTN" with four pads
+S - SMD button with footprint "DUAL-BTN" with four pads
+
+NRF1 - 2.54mm female pin header (8 positions - 2 rows) for NRF24L01+ module
+NRF1 - 2.54mm female pin header (8 positions - 2 rows) for NRF24L01+ module
+
+P1 100k SMD potentiometer, 35W-POT series
+P2 100k SMD potentiometer, 35W-POT series
+P3 100k SMD potentiometer, 35W-POT series
+P4 100k SMD potentiometer, 35W-POT series
+
+PWM - screw terminal 5.08mm  (4 positions)
+
+PWM1 - DRV8220 SOT (looks like SOT23-6 .. check datasheet)
+PWM2 - DRV8220 SOT (looks like SOT23-6 .. check datasheet)
+
+R0 0805 0R
+R1 0805 100k
+R2 0805 to be defined to meet | R1 + X_C1 @ 4kHz| = | R2 + X_C2 @ 4kHz| = R3 
+R3 0805 to be defined to meet | R1 + X_C1 @ 4kHz| = | R2 + X_C2 @ 4kHz| = R3
+R4 0805 DNI
+R5 0805 10k
+R6 0805 DNI
+R7 0805 1k
+R8 0805 0R
+R9 0805 1.2k or 0R or DNI (in series with C8 GAIN 50, 0R with C8 GAIN 200, DNI GAIN 20)
+R10 0805 10R
+R11 0805 1k
+R12 0805 0R
+R13 0805 1.2k or 0R or DNI (in series with C11 GAIN 50, 0R with C11 GAIN 200, DNI GAIN 20)
+R14 0805 10R
+R15 0805 10k
+R16 0805 10k
+R17 0805 10k
+R18 0805 10k
+R19 0805 0R
+R20 0805 240R (wrong design, must be FET buffer added, MCU pin can't drive so hungry LED)
+R21 0805 240R (wrong design, must be FET buffer added, MCU pin can't drive so hungry LED)
+R22 0805 10k
+R22 0805 10k
+R22 0805 10k
+R22 0805 10k
+R22 0805 10k
+RDA RDA5807M "I2C FM Receiver v1.1"
+
+T1 78-SI2369DS-T1-BE3 P-FET, Vg_tr min -2.8V (or other capable to drive 2x LM386 with their R_Ls)
+T2 78-SI2369DS-T1-BE3 P-FET, Vg_tr min -2.8V (or other capable to drive LED of the MCU Friend 3.4'' display)
+T3 78-SI2369DS-T1-BE3 P-FET, Vg_tr min -2.8V (or other way weaker, drives NRF24L01+ max cca 20mA)
+T4 78-SI2369DS-T1-BE3 P-FET, Vg_tr min -2.8V (or other way weaker, drives NRF24L01+ max cca 20mA)
+T5 78-SI2369DS-T1-BE3 P-FET, Vg_tr min -2.8V (or other capable to drive ESP8266 peak up to 400mA)
+T6 BSS-123 N-FET Vg_tr max 2.8V (or other weaker, drain current max 10mA)
+T7 BSS-123 N-FET Vg_tr max 2.8V (or other weaker, drain current max 10mA)
+T8 BSS-123 N-FET Vg_tr max 2.8V (or other weaker, drain current max 1mA)
+T9 78-SI2369DS-T1-BE3 P-FET, Vg_tr min -2.8V (or other capable to drive RDA5807M)
+
+TEMP ADT7420 LFSCP-16
+
+VIN - screw terminal 5.08mm  (2 positions)
+
+ZIO_1 2.54mm double female pin header with longer pins, 8x2
+ZIO_1 2.54mm double female pin header with longer pins, 15x2
+ZIO_1 2.54mm double female pin header with longer pins, 10x2
+ZIO_1 2.54mm double female pin header with longer pins, 17x2
+
