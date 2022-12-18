@@ -1,0 +1,5 @@
+esp8266_http_server.c:17:10:ESP_HTTPinit	160	static
+esp8266_http_server.c:114:10:ESP_SendHTTP	120	static
+esp8266_http_server.c:135:10:ESP_DetectedHTTP	40	static
+esp8266_http_server.c:162:10:ESP_CheckReceiveHTTP	40	static
+esp8266_http_server.c:176:7:ESP_ProcessHTTP	72	static

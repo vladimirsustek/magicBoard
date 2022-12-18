@@ -35,6 +35,10 @@
 
 #include "nrf24l01p_driver.h"
 #include "nrf24l01p_driver_B.h"
+
+#include "esp8266_http_server.h"
+
+#include "eeprom_25aa1024.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -79,6 +83,7 @@ int main(void)
   uint8_t nrf1_rx[33] = {0};
   uint8_t nrf2_tx[33];
   uint8_t nrf2_rx[33] = {0};
+  uint8_t eepromData[9] = {0};
 
   /* USER CODE END 1 */
 
@@ -114,6 +119,12 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
+
+
+  ESP_HTTPinit();
+
+  EEPROM_ReadData(0, eepromData, 8);
+  printf((char*)eepromData);
 
   NRF_powerDown();
   NRF_powerDown_B();

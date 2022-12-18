@@ -40,7 +40,13 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/eth.h ../Core/Inc/i2c.h ../Core/Inc/spi.h ../Core/Inc/tim.h \
  ../Core/Inc/usart.h ../Core/Inc/usb_otg.h ../Core/Inc/gpio.h \
  ../nrf24l01p/nrf24l01p_driver.h ../nrf24l01p/nrf24l01p_defines.h \
- ../nrf24l01p/nrf24l01p_driver_B.h
+ ../nrf24l01p/nrf24l01p_driver_B.h \
+ C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_http_server.h \
+ C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_port.h \
+ C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_http_data.h \
+ C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_functions.h \
+ C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_utils.h \
+ C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/25AA1024/Inc/eeprom_25aa1024.h
 
 ../Core/Inc/main.h:
 
@@ -145,3 +151,15 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../nrf24l01p/nrf24l01p_defines.h:
 
 ../nrf24l01p/nrf24l01p_driver_B.h:
+
+C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_http_server.h:
+
+C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_port.h:
+
+C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_http_data.h:
+
+C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_functions.h:
+
+C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc/esp8266_utils.h:
+
+C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/25AA1024/Inc/eeprom_25aa1024.h:

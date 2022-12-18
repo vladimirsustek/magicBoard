@@ -1,0 +1,5 @@
+esp8266_port.c:32:17:Do_2Sec_Reset	8	static
+esp8266_port.c:43:10:Start_DMA_XUART	16	static
+esp8266_port.c:74:10:ESP_CheckRX_DMA_XUART	40	static,ignoring_inline_asm
+esp8266_port.c:159:10:ESP_ComInit	16	static
+esp8266_port.c:170:10:ESP_SendCommand	24	static

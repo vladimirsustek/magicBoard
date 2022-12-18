@@ -16,7 +16,7 @@ S_DEPS += \
 
 # Each subdirectory must supply rules for building sources it contributes
 Core/Startup/%.o: ../Core/Startup/%.s Core/Startup/subdir.mk
-	arm-none-eabi-gcc -mcpu=cortex-m7 -g3 -DDEBUG -c -I"C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/nrf24l01p" -x assembler-with-cpp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "$@" "$<"
+	arm-none-eabi-gcc -mcpu=cortex-m7 -g3 -DDEBUG -c -I"C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/nrf24l01p" -I"C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Inc" -I"C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/esp8266/Src" -I"C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/25AA1024/Inc" -I"C:/Users/42077/STM32CubeIDE/workspace_1.8.0/magicBoard_v0/25AA1024/Src" -x assembler-with-cpp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "$@" "$<"
 
 clean: clean-Core-2f-Startup
 
