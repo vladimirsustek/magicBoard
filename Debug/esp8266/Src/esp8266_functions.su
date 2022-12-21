@@ -1,4 +1,0 @@
-esp8266_functions.c:44:10:CmdESPConsoleATCmd	24	static
-esp8266_functions.c:55:10:CmdESPConsoleWrStr	24	static
-esp8266_functions.c:67:10:ESP_CheckRX	56	static
-esp8266_functions.c:146:10:ESP_CheckResponse	48	static

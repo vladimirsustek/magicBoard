@@ -1,9 +1,0 @@
-nrf24l01p_port.c:66:9:nrfport_initHostHW	16	static
-nrf24l01p_port.c:84:6:nrfport_spiTransaction	32	static
-nrf24l01p_port.c:101:6:nrfport_writeByte	24	static
-nrf24l01p_port.c:120:9:nrfport_readByte	24	static
-nrf24l01p_port.c:136:6:nrfport_ceHigh	8	static
-nrf24l01p_port.c:145:6:nrfport_ceLow	8	static
-nrf24l01p_port.c:154:6:nrfport_powerUp	8	static
-nrf24l01p_port.c:163:6:nrfport_powerDown	8	static
-nrf24l01p_port.c:173:9:nrfport_getIRQ	16	static

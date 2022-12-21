@@ -1,3 +1,0 @@
-nrf24l01p_func.c:17:12:new_NRFDevice	16	static
-nrf24l01p_func.c:81:6:init_NRFReceiver	16	static
-nrf24l01p_func.c:121:6:init_NRFTransmitter	16	static

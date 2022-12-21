@@ -1,9 +1,0 @@
-nrf24l01p_port_B.c:67:9:nrfport_initHosthw_B	16	static
-nrf24l01p_port_B.c:85:6:nrfport_spiTransaction_B	32	static
-nrf24l01p_port_B.c:102:6:nrfport_writeByte_B	24	static
-nrf24l01p_port_B.c:121:9:nrfport_readByte_B	24	static
-nrf24l01p_port_B.c:136:6:nrfport_ceHigh_B	8	static
-nrf24l01p_port_B.c:145:6:nrfport_ceLow_B	8	static
-nrf24l01p_port_B.c:154:6:nrfport_powerUp_B	8	static
-nrf24l01p_port_B.c:164:6:nrfport_powerDown_B	8	static
-nrf24l01p_port_B.c:174:9:nrfport_getIRQ_B	16	static
