@@ -41,6 +41,9 @@
 #include "eeprom_25aa1024.h"
 
 #include "rda5807m.h"
+
+#include "tft.h"
+#include "functions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -122,8 +125,11 @@ int main(void)
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
 
-
   ESP_HTTPinit();
+
+  reset();
+  tft_init(readID());
+  fillScreen(BLUE);
 
   EEPROM_ReadData(0, eepromData, 8);
   printf((char*)eepromData);
