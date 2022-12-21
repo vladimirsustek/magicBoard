@@ -51,3 +51,4 @@
 "./nrf24l01p/nrf24l01p_func.o"
 "./nrf24l01p/nrf24l01p_port.o"
 "./nrf24l01p/nrf24l01p_port_B.o"
+"./rda5807m/Src/rda5807m.o"

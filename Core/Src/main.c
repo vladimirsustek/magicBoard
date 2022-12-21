@@ -39,6 +39,8 @@
 #include "esp8266_http_server.h"
 
 #include "eeprom_25aa1024.h"
+
+#include "rda5807m.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -141,6 +143,10 @@ int main(void)
 
   NRF_configure(true);
   NRF_configure_B(false);
+
+
+  RDA5807mPowerOn();
+  RDA5807mInit(8920, 15);
 
   while(1)
   {
