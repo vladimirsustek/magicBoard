@@ -146,10 +146,16 @@ int main(void)
 
 
   RDA5807mPowerOn();
-  RDA5807mInit(8920, 15);
+  RDA5807mInit(8920, 1);
+
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
 
   while(1)
   {
+
+	  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+	  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+
 	  sprintf((char*)nrf1_tx, "%032ld", HAL_GetTick());
 	  sprintf((char*)nrf2_tx, "%032ld", 0x7FFFFFFF - HAL_GetTick());
 
