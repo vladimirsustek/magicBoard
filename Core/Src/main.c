@@ -125,7 +125,7 @@ int main(void)
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
 
-  ESP_HTTPinit();
+  //ESP_HTTPinit();
 
   reset();
   tft_init(readID());
@@ -153,6 +153,7 @@ int main(void)
 
   RDA5807mPowerOn();
   RDA5807mInit(8920, 1);
+  RDA5807mMute(0);
 
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
 
@@ -200,7 +201,9 @@ int main(void)
 		  printf("%s\n", nrf2_rx);
 	  }
 
-	  HAL_Delay(500);
+	  HAL_Delay(2000);
+
+	  HAL_GPIO_TogglePin(AO_PWR_GPIO_Port, AO_PWR_Pin);
   }
 
   /* USER CODE END 2 */
