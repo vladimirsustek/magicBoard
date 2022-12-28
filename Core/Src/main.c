@@ -44,6 +44,8 @@
 
 #include "tft.h"
 #include "functions.h"
+
+#include "cli.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,13 +112,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ETH_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_USB_Init();
   MX_DAC_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
-  MX_DMA_Init();
   MX_UART7_Init();
   MX_TIM2_Init();
   MX_I2C2_Init();
@@ -144,22 +146,33 @@ int main(void)
 
   HAL_Delay(500);
 
-  printf("NRF1: 0x%02lx\n", NRF_powerCycle(HAL_Delay));
-  printf("NRF2: 0x%02lx\n", NRF_powerCycle_B(HAL_Delay));
+  printf("NRF1 STATUS: 0x%02lx\n", NRF_powerCycle(HAL_Delay));
+  printf("NRF2 STATUS: 0x%02lx\n", NRF_powerCycle_B(HAL_Delay));
 
   NRF_configure(true);
   NRF_configure_B(false);
 
-
   RDA5807mPowerOn();
-  RDA5807mInit(8920, 1);
+  RDA5807mInit(9170, 1);
   RDA5807mMute(0);
 
+  cli_init();
+
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(AO_PWR_GPIO_Port, AO_PWR_Pin, GPIO_PIN_SET);
+
 
   while(1)
   {
+	  cli_t cli = cli_process();
+	  if(cli.pBegin != NULL)
+	  {
+		  printf("RX: %s\n", cli.pBegin);
+	  }
+  }
 
+  while(1)
+  {
 	  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 	  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
@@ -190,7 +203,6 @@ int main(void)
 	  uint8_t lng1 = NRF_postProcess(0, nrf1_rx);
 	  uint8_t lng2 = NRF_postProcess_B(0, nrf2_rx);
 
-
 	  if(lng1 && lng1 != (uint8_t)(-1))
 	  {
 		  printf("%s\n", nrf1_rx);
@@ -201,9 +213,7 @@ int main(void)
 		  printf("%s\n", nrf2_rx);
 	  }
 
-	  HAL_Delay(2000);
-
-	  HAL_GPIO_TogglePin(AO_PWR_GPIO_Port, AO_PWR_Pin);
+	  HAL_Delay(100);
   }
 
   /* USER CODE END 2 */

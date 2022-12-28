@@ -10,7 +10,6 @@
 
 #include "usart.h"
 
-#if 0
 #define CLI_BUFF_SIZE (uint32_t)(64)
 
 typedef struct cli
@@ -22,5 +21,5 @@ typedef struct cli
 void cli_init(void);
 void cli_deInit(void);
 cli_t cli_process(void);
-#endif
+
 #endif /* CLI_H_ */
