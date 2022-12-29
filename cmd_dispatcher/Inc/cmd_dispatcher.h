@@ -7,7 +7,7 @@
 #include "cmd_leds.h"
 
 #include "esp8266_functions.h"
-#include "eeprom_25aa1024.h"
+#include "nvm_app.h"
 
 uint16_t CmdDispatch(const uint8_t* const pStrCmd, const uint16_t lng);
 

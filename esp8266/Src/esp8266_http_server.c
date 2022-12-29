@@ -7,7 +7,7 @@
 
 
 #include "esp8266_http_server.h"
-#include "eeprom_25aa1024.h"
+#include "nvm_app.h"
 #define STATIC_IP_AND_NEW_WIFI 0
 
 #define atCmd_CWJAP_LNG		(uint32_t)(strlen("AT+CWJAP="))
@@ -39,9 +39,6 @@ uint32_t ESP_HTTPinit (void)
 	    }
 	}
 
-#warning CUT HERE
-	return 0;
-
 	// If reset 3x did not work well, no reason to continue
 	if(0 != result)
 	{
@@ -50,44 +47,10 @@ uint32_t ESP_HTTPinit (void)
 
 	}
 
-    // Disconnecting from current WIFI
+	// TODO: check if AT+CWQAP is not error */
+    //Disconnecting from current WIFI
     ESP_SendCommand(atCmd_CWQAP, strlen(atCmd_CWQAP));
     if(NULL == ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_2s)) result++;
-
-    // Iterative attempt to connect with predefined EEPROM stored WIFIs
-    for (uint32_t adr = EEPROM_WIFI_ADR_0;
-    		adr <= EEPROM_WIFI_ADR_3;
-    		adr += EEPROM_PAGE_SIZE/2)
-    {
-    	uint8_t* wifi = EEPROM_GetWIfi(adr, atCmd_CWJAP_LNG, pSSIDpassword);
-
-    	// If no WIFI fetched
-    	if (NULL == wifi)
-    	{
-    		// Attempt set unsuccessful and force a next read
-    		subResult = NULL;
-    		continue;
-    	}
-		memcpy(wifi, atCmd_CWJAP, atCmd_CWJAP_LNG);
-
-		ESP_SendCommand((char*)wifi, strlen((char*)wifi));
-		subResult = ESP_CheckResponse((char*)atRsp_WifiGotIp,
-				strlen(atRsp_WifiGotIp),
-				ESP_TIMEOUT_15s);
-		if (NULL != subResult)
-		{
-			EEPROM_GetSystemState();
-			systemGlobalState.states.espConnected = 1;
-			EEPROM_SetSystemState();
-
-			break;
-		}
-    }
-
-    if (NULL == subResult)
-    {
-    	return ESP_WIFI_FAILED;
-    }
 
 	/********* AT (just testing no-set/no-get command)**********/
     ESP_SendCommand(atCmd, strlen(atCmd));
@@ -104,6 +67,41 @@ uint32_t ESP_HTTPinit (void)
 	/********* AT+CIPSERVER **********/
     ESP_SendCommand(atCmd_CIPSERVER, strlen(atCmd_CIPSERVER));
     if(NULL == ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms)) result++;
+
+    // Iterative attempt to connect with predefined EEPROM stored WIFIs
+    for (uint32_t adr = EEPROM_WIFI_ADR_0;
+    		adr <= EEPROM_WIFI_ADR_3;
+    		adr += EEPROM_PAGE_SIZE/2)
+    {
+    	uint8_t* wifi = NVM_GetWIfi(adr, atCmd_CWJAP_LNG, pSSIDpassword);
+
+    	// If no WIFI fetched
+    	if (NULL == wifi)
+    	{
+    		// Attempt set unsuccessful and force a next read
+    		subResult = NULL;
+    		continue;
+    	}
+		memcpy(wifi, atCmd_CWJAP, atCmd_CWJAP_LNG);
+
+		ESP_SendCommand((char*)wifi, strlen((char*)wifi));
+		subResult = ESP_CheckResponse((char*)atRsp_WifiGotIp,
+				strlen(atRsp_WifiGotIp),
+				ESP_TIMEOUT_15s);
+		if (NULL != subResult)
+		{
+			NVM_GetSystemState();
+			systemGlobalState.states.espConnected = 1;
+			NVM_SetSystemState();
+
+			break;
+		}
+    }
+
+    if (NULL == subResult)
+    {
+    	return ESP_WIFI_FAILED;
+    }
 
     result = (result) ? ESP_HARD_ERR : ESP_OK;
 

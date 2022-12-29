@@ -32,8 +32,8 @@ static const CmdDisp_t cmdTable[CMD_TABLE_SIZE] = {
 /*18*/    {CMD_METHOD_ATS, CMD_ESP8266_STRWR, CmdESPConsoleWrStr},
 
 /* 25AA1024 commands -------------------------------------------*/
-/*19*/    {CMD_METHOD_EES, CMD_25AAXXX_WBYTE, Cmd25AA1024WrBytes},
-/*20*/    {CMD_METHOD_EEG, CMD_25AAXXX_RBYTE, Cmd25AA1024RdBytes},
+/*19*/    {CMD_METHOD_EES, CMD_25AAXXX_WBYTE, CmdNVMWriteBytes},
+/*20*/    {CMD_METHOD_EEG, CMD_25AAXXX_RBYTE, CmdNVMReadBytes},
 
 /* LEDs commands   ---------------------------------------------*/
 /*21*/    {CMD_METHOD_SET, CMD_GREEN_LEDSTAT, CmdGreenLEDSetStat},

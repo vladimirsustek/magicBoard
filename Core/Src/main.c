@@ -38,7 +38,7 @@
 
 #include "esp8266_http_server.h"
 
-#include "eeprom_25aa1024.h"
+#include "nvm_app.h"
 
 #include "rda5807m.h"
 
@@ -93,6 +93,7 @@ int main(void)
   uint8_t nrf2_tx[33];
   uint8_t nrf2_rx[33] = {0};
   uint8_t eepromData[9] = {0};
+  uint8_t pWIFI[EEPROM_PAGE_SIZE/2];
 
   /* USER CODE END 1 */
 
@@ -128,12 +129,11 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
+  ESP_HTTPinit();
 
-  //ESP_HTTPinit();
-
-  reset();
-  tft_init(readID());
-  fillScreen(BLUE);
+  //reset();
+  //tft_init(readID());
+  //fillScreen(BLUE);
 
   EEPROM_ReadData(0, eepromData, 8);
   printf((char*)eepromData);

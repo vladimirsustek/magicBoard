@@ -14,7 +14,6 @@
 
 #include "spi.h"
 
-
 #define EEPROM_READ				(uint8_t)(0b00000011) // Read data from memory array beginning at the selected address
 #define EEPROM_WRITE			(uint8_t)(0b00000010) // Write data to memory array beginning at the selected address
 #define EEPROM_WREN				(uint8_t)(0b00000110) // Set the write enable latch (enable write operations)
@@ -43,44 +42,9 @@
 
 #define EEPROM_PAGE_SIZE		(uint16_t)(256u)
 
-/* Application's predefined addresses where "SSID","password" are stored
- * distance between addresses and therefore space is 128 bytes what is
- * enough for 32 maximal bytes SSID and maximal 64 bytes password*/
-#define EEPROM_WIFI_ADR_0		(uint32_t)(0x018600)
-#define EEPROM_WIFI_ADR_1		(uint32_t)(0x018680)
-#define EEPROM_WIFI_ADR_2		(uint32_t)(0x018700)
-#define EEPROM_WIFI_ADR_3		(uint32_t)(0x018780)
-
-#define EEPROM_SYS_STATE_ADR	(uint32_t)(0x018800)
-
-typedef struct sys_state_flags
-{
-	uint8_t rdaEnabled : 1, /* To be non-volatile */
-			espEnabled : 1, /* To be non-volatile */
-
-			espConnected : 1, /* Being checked on runtime, no reason for non-volatile */
-			eepromFunctional : 1, /* Being checked on runtime, no reason for non-volatile */
-
-	        dummy0xA : 4; /* To be non-volatile 0b1010 */
-}sys_state_flags_t;
-
-typedef struct sys_state
-{
-	uint16_t radioFreq;
-	uint8_t radioVolm;
-	sys_state_flags_t states;
-}sys_state_t;
-
-sys_state_t systemGlobalState;
-
 uint32_t EEPROM_Init(void);
 uint32_t EEPROM_WriteData(uint32_t address, uint8_t* pData, uint16_t Size);
 uint32_t EEPROM_ReadData(uint32_t address, uint8_t *pData, uint16_t Size);
 uint32_t EEPROM_ReadStatusRegister(uint8_t *ret);
 uint32_t EEPROM_WriteStatusRegister(uint8_t value);
-uint16_t Cmd25AA1024WrBytes(const uint8_t* const cmd, const uint16_t lng);
-uint16_t Cmd25AA1024RdBytes(const uint8_t* const cmd, const uint16_t lng);
-uint8_t* EEPROM_GetWIfi(uint32_t address, uint32_t offset, uint8_t* pSSIDpassword);
-uint32_t EEPROM_GetSystemState(void);
-uint32_t EEPROM_SetSystemState(void);
 #endif /* EEPROM_25AA1024_H_ */

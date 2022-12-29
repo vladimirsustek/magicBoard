@@ -3,7 +3,7 @@
 
 #include "cmd_defs.h"
 #include "rda5807m.h"
-#include "eeprom_25aa1024.h"
+#include "nvm_app.h"
 
 uint16_t CmdRDA5807mDoInit(const uint8_t* const pStrCmd, const uint16_t lng);
 uint16_t CmdRDA5807mDoReset(const uint8_t* const pStrCmd, const uint16_t lng);

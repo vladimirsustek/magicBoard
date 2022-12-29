@@ -12,15 +12,9 @@ uint16_t CmdGreenLEDSetStat(const uint8_t* const pStrCmd, const uint16_t lng)
 {
     if ((CMD_METHOD_LNG + CMD_NAME_LNG +
          CMD_DELIMITER_LNG*2 + CMD_ARG1_LNG+
-         CMD_EOL_LNG) != lng) {
+         CMD_EOL_LNG) != lng)
+    {
 
-    	printf("expected: %d\n", (
-    			CMD_METHOD_LNG + //ST 2
-				CMD_NAME_LNG +   //GREE 4
-				CMD_DELIMITER_LNG*2 + // _ _ 2
-				CMD_ARG1_LNG+ // 1
-				CMD_EOL_LNG)); // 2
-    	printf("received %d\n", lng); //ST_GREE_1<CR><LF>
         return CMD_RET_ERR;
     }
 
@@ -39,7 +33,8 @@ uint16_t CmdWhiteLEDSetStat(const uint8_t* const pStrCmd, const uint16_t lng)
 {
     if ((CMD_METHOD_LNG + CMD_NAME_LNG +
          CMD_DELIMITER_LNG*2 + CMD_ARG1_LNG+
-         CMD_EOL_LNG) != lng) {
+         CMD_EOL_LNG) != lng)
+    {
 
         return CMD_RET_ERR;
     }

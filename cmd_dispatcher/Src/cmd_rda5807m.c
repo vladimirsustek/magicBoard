@@ -10,7 +10,7 @@ uint16_t CmdRDA5807mDoInit(const uint8_t* const pStrCmd, const uint16_t lng) {
 	RDA5807mInit(systemGlobalState.radioFreq, systemGlobalState.radioVolm);
 
 	systemGlobalState.states.rdaEnabled = 1;
-	EEPROM_SetSystemState();
+	NVM_SetSystemState();
 
 
 	return CMD_RET_OK;
@@ -27,7 +27,7 @@ uint16_t CmdRDA5807mDoReset(const uint8_t* const pStrCmd, const uint16_t lng) {
 	RDA5807mReset();
 
 	systemGlobalState.states.rdaEnabled = 0;
-	EEPROM_SetSystemState();
+	NVM_SetSystemState();
 
     return CMD_RET_OK;
 
@@ -79,7 +79,7 @@ uint16_t CmdRDA5807mSetFreq(const uint8_t* const pStrCmd, const uint16_t lng) {
     freq += (pStrCmd[CMD_ARG_OFFSET + 4] - '0')*1;
 
 	systemGlobalState.radioFreq = freq;
-	EEPROM_SetSystemState();
+	NVM_SetSystemState();
 
 	uint16_t result = RDA5807mSetFreq(freq);
 
@@ -103,7 +103,7 @@ uint16_t CmdRDA5807mSetVolm(const uint8_t* const pStrCmd, const uint16_t lng) {
     volm += (pStrCmd[CMD_ARG_OFFSET + 1] - '0')*1;
 
 	systemGlobalState.radioVolm = volm;
-	EEPROM_SetSystemState();
+	NVM_SetSystemState();
 
 	uint16_t result = RDA5807mSetVolm(volm);
 
