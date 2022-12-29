@@ -27,8 +27,6 @@ static uint8_t buffInt[CLI_BUFF_SIZE + 1];
 static uint8_t buffExt[CLI_BUFF_SIZE];
 static uint32_t uartX_rx_read_ptr = 0;
 
-
-#define CLI_PROCESS_TIMEOUT CLI_BUFF_SIZE + 1
 #define TERMINATION_CHAR	(uint8_t)('\n')
 #define STRING_TERMINATION	(uint8_t)('\0')
 
@@ -44,14 +42,13 @@ void cli_deInit(void)
 
 cli_t cli_process(void)
 {
-	uint32_t rxLng = 0;
 	static uint32_t intLng = 0;
 	cli_t retStr = {NULL, 0};
 
 	while(uartX_rx_read_ptr != CLI_BUFF_SIZE - RX_CNT)
 	{
 
-		if(rxLng >= CLI_PROCESS_TIMEOUT)
+		if(intLng >= CLI_PROCESS_TIMEOUT)
 		{
 			retStr.pBegin = NULL;
 			break;
@@ -62,7 +59,7 @@ cli_t cli_process(void)
 		if(TERMINATION_CHAR == buffInt[uartX_rx_read_ptr])
 		{
 			buffExt[intLng+1] = STRING_TERMINATION;
-			retStr.length = intLng;
+			retStr.length = intLng+1;
 			retStr.pBegin = buffExt;
 			intLng = 0;
 		}

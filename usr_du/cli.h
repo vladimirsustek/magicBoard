@@ -10,7 +10,9 @@
 
 #include "usart.h"
 
+
 #define CLI_BUFF_SIZE (uint32_t)(64)
+#define CLI_PROCESS_TIMEOUT CLI_BUFF_SIZE + 1
 
 typedef struct cli
 {

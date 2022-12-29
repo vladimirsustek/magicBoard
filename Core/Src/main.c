@@ -46,6 +46,8 @@
 #include "functions.h"
 
 #include "cli.h"
+
+#include "cmd_dispatcher.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -161,18 +163,18 @@ int main(void)
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(AO_PWR_GPIO_Port, AO_PWR_Pin, GPIO_PIN_SET);
 
-
   while(1)
   {
+
 	  cli_t cli = cli_process();
-	  if(cli.pBegin != NULL)
+	  if(cli.pBegin != NULL &&
+			  cli.length != 0 &&
+			  cli.length != CLI_PROCESS_TIMEOUT)
 	  {
-		  printf("RX: %s\n", cli.pBegin);
+		  CmdDispatch(cli.pBegin, cli.length);
 	  }
-  }
+	  continue;
 
-  while(1)
-  {
 	  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 	  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
