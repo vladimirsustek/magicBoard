@@ -134,18 +134,15 @@ int main(void)
 
   reset();
   tft_init(readID());
-  //fillScreen(BLUE);
+  fillScreen(BLUE);
 
-  //void printnewtstr (int row, uint16_t txtcolor, const GFXfont *f, uint8_t txtsize, char *str)
+  void printnewtstr (int row, uint16_t txtcolor, const GFXfont *f, uint8_t txtsize, char *str);
 
   NRF_powerDown();
   NRF_powerDown_B();
-
   HAL_Delay(500);
-
   NRF_powerUp();
   NRF_powerUp_B();
-
   HAL_Delay(500);
 
   printf("NRF1 STATUS: 0x%02lx\n", NRF_powerCycle(HAL_Delay));

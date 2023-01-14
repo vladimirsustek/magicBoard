@@ -7,21 +7,20 @@
 
 #include "nvm_app.h"
 
+/* Defines for CmdNVMWriteBytes/CmdNVMReadBytes */
 #define ESP_RESULT_CUSTOM 		(uint16_t)(0x5A5A)
 #define EEPROM_R_ERROR			(char*)("EEPROM_R_ERROR\r\n")
 #define EEPROM_W_ERROR			(char*)("EEPROM_W_ERROR\r\n")
-
 #define ESP_CMD_ADR 			(uint8_t*)"ADR_"
 #define ESP_CMD_LNG 			(uint8_t*)"LNG_"
-
 #define EEPROM_W_CMD_OFFSET		(uint16_t)(strlen("EE_WRBT_ADR_000000_"))
 #define EEPROM_R_CMD_OFFSET		(uint16_t)(strlen("EE_RDBT_ADR_000000_LNG_000000_"))
-
 #define IS_NUM(x)   ((x) >= '0' && (x) <= '9')
 
 #ifndef CMD_CUSTOM
 #define CMD_CUSTOM			((uint16_t)(0x5A5A))
 #endif
+
 
 #define PLATFORM_DELAY_MS(x)		(HAL_Delay((x)))
 
@@ -32,18 +31,6 @@ static uint32_t ExtractValue(const uint8_t* const pKeyWord,
 		const uint8_t* const pBUff,
 		const uint32_t buffLng,
 		uint32_t* val);
-
-#ifdef SHOW_HOW_TO_USE_NVM_GetWifi
-/* Supposed to be used with ESP8266, thus AT+CWJAP=*/
-	EEPROM_WriteData(EEPROM_WIFI_ADR_0,
-			(uint8_t*)"\"WIFI_NAME\",\"WIFI_PASSWORD\"\r\n",
-			strlen("\"WIFI_NAME\",\"WIFI_PASSWORD\"\r\n"));
-	NVM_GetWIfi(EEPROM_WIFI_ADR_0, strlen("AT+CWJAP="), pWIFI);
-	memcpy(pWIFI, "AT+CWJAP=", strlen("AT+CWJAP="));
-	printf("%s\r\n", pWIFI);
-#endif
-
-
 
 /*
  * @brief Set WIFI SSID and password from the NVM EEPROM address space
