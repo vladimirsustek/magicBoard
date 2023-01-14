@@ -78,17 +78,7 @@ uint32_t ESP_HTTPinit (void)
 		memcpy(pSSIDpassword + strlen((char*)pSSIDpassword), (uint8_t*)"\r\n", 2);
 
 		espPort_sendCommand((char*)pSSIDpassword, strlen((char*)pSSIDpassword));
-		subResult = ESP_CheckResponse((char*)atRsp_WifiGotIp,
-				strlen(atRsp_WifiGotIp),
-				ESP_TIMEOUT_15s);
-		if (NULL != subResult)
-		{
-			NVM_GetSystemState();
-			systemGlobalState.states.espConnected = 1;
-			NVM_SetSystemState();
-
-			break;
-		}
+		subResult = ESP_CheckResponse((char*)atRsp_WifiGotIp, strlen(atRsp_WifiGotIp), ESP_TIMEOUT_15s);
     }
 
     if (NULL == subResult)

@@ -128,15 +128,27 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
+
+  //NVM_SetAudioOutEnable(1);
+  //NVM_SetESPEnable(1);
+  //NVM_SetRDAEnable(1);
+  //NVM_SetRDAfrequency(12345);
+  //NVM_SetRDAvolume(12);
+
+  printf("AudioOut %d\r\n", NVM_GetAudioOutEnable());
+  printf("ESP %d\r\n", NVM_GetESPEnable());
+  printf("RDA %d\r\n", NVM_GetRDAEnable());
+  printf("RDAfrequency %d\r\n", NVM_GetRDAfrequency());
+  printf("RDAvolume %d\r\n", NVM_GetRDAvolume());
+
   ESP_HTTPinit();
+
+  //reset();
+  //tft_init(readID());
+  //fillScreen(BLUE);
 
   while(1);
 
-  reset();
-  tft_init(readID());
-  fillScreen(BLUE);
-
-  void printnewtstr (int row, uint16_t txtcolor, const GFXfont *f, uint8_t txtsize, char *str);
 
   NRF_powerDown();
   NRF_powerDown_B();

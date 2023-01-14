@@ -24,13 +24,79 @@
 
 #define PLATFORM_DELAY_MS(x)		(HAL_Delay((x)))
 
-sys_state_t systemGlobalState;
-
 /* Helper function */
 static uint32_t ExtractValue(const uint8_t* const pKeyWord,
 		const uint8_t* const pBUff,
 		const uint32_t buffLng,
-		uint32_t* val);
+		uint32_t* val)
+{
+    const uint8_t* pBrowse = pBUff;
+
+    uint32_t strLng = 0;
+    uint32_t value = 0;
+	uint32_t decOrder = 1;
+	uint32_t keyWordFound = 0;
+
+    /* Is keyword in pBUff ? */
+    for (uint32_t idx = 0; idx < buffLng; idx++)
+    {
+        if (!memcmp(pBrowse, (char*)pKeyWord, strlen((char*)pKeyWord)))
+        {
+            keyWordFound = 1;
+            break;
+        }
+        (char*)(pBrowse++);
+    }
+
+    //if ((!keyWordFound) || ((pBUff - pBrowse) >= buffLng))
+    if (!keyWordFound)
+    {
+        /* Keyword is either not found or there is no data after keyword*/
+        *val = 0;
+        return 0;
+    }
+
+    /* Move pBrowse on the number */
+    pBrowse = (uint8_t*)(pBrowse + strlen((char*)pKeyWord));
+
+    for (uint32_t idx = 0; IS_NUM(pBrowse[idx]); idx++)
+    {
+        strLng++;
+    }
+
+    /* Create highest decimal order of the string */
+    for (uint32_t idx = 0; idx < strLng - 1; idx++)
+    {
+        decOrder = decOrder * 10;
+    }
+
+    /* Go from left to right through the string and create the int value */
+    for (uint32_t idx = 0; idx < strLng; idx++)
+    {
+        value += (pBrowse[idx] - '0') * decOrder;
+
+        decOrder = decOrder / 10;
+    }
+
+    *val = value;
+
+    return keyWordFound;
+}
+
+
+static sys_state_t NVM_GetSystemState(void)
+{
+	sys_state_t result;
+
+	EEPROM_ReadData(EEPROM_SYS_STATE_ADR, (uint8_t*)&result, sizeof(sys_state_t));
+
+	return result;
+}
+
+static void NVM_SetSystemState(sys_state_t state)
+{
+	EEPROM_WriteData(EEPROM_SYS_STATE_ADR, (uint8_t*)&state, sizeof(sys_state_t));
+}
 
 /*
  * @brief Set WIFI SSID and password from the NVM EEPROM address space
@@ -75,6 +141,80 @@ uint32_t NVM_SetWifi(nvm_adr_e adr, uint8_t* pSSIDpassword, uint32_t lng)
 }
 
 
+void NVM_SetRDAEnable(uint8_t en)
+{
+	sys_state_t state = NVM_GetSystemState();
+	state.states.rdaEnabled = (en) ? 1 : 0;
+	NVM_SetSystemState(state);
+}
+
+
+void NVM_SetESPEnable(uint8_t en)
+{
+	sys_state_t state = NVM_GetSystemState();
+	state.states.espEnabled = (en) ? 1 : 0;
+	NVM_SetSystemState(state);
+}
+
+
+void NVM_SetAudioOutEnable(uint8_t en)
+{
+	sys_state_t state = NVM_GetSystemState();
+	state.states.audioOutEnabled = (en) ? 1 : 0;
+	NVM_SetSystemState(state);
+}
+
+
+void NVM_SetRDAvolume(uint8_t volume)
+{
+	sys_state_t state = NVM_GetSystemState();
+	state.rda5807mVolm = volume & 0xF;
+	NVM_SetSystemState(state);
+}
+
+
+void NVM_SetRDAfrequency(uint16_t frequency)
+{
+	sys_state_t state = NVM_GetSystemState();
+	state.rda5807mFreq = frequency;
+	NVM_SetSystemState(state);
+}
+
+
+uint8_t NVM_GetRDAEnable()
+{
+	sys_state_t state = NVM_GetSystemState();
+	return state.states.rdaEnabled;
+}
+
+
+uint8_t NVM_GetESPEnable()
+{
+	sys_state_t state = NVM_GetSystemState();
+	return state.states.espEnabled;
+}
+
+
+uint8_t NVM_GetAudioOutEnable()
+{
+	sys_state_t state = NVM_GetSystemState();
+	return state.states.audioOutEnabled;
+}
+
+
+uint8_t NVM_GetRDAvolume()
+{
+	sys_state_t state = NVM_GetSystemState();
+	return state.rda5807mVolm;
+}
+
+
+uint16_t NVM_GetRDAfrequency()
+{
+	sys_state_t state = NVM_GetSystemState();
+	return state.rda5807mFreq;
+}
+
 /*
  * @brief Get WIFI SSID and password from the NVM EEPROM address space
  *
@@ -110,30 +250,6 @@ uint32_t NVM_GetWIfi(nvm_adr_e adr, uint8_t* pSSIDpassword, uint32_t lng)
 
 	return result;
 }
-
-uint32_t NVM_GetSystemState(void)
-{
-	uint32_t subResult;
-
-	subResult = EEPROM_ReadData(EEPROM_SYS_STATE_ADR, (uint8_t*)&systemGlobalState, sizeof(sys_state_t));
-
-	subResult = (0 == subResult) ? 0 : (uint32_t)-1;
-
-	return subResult;
-}
-
-uint32_t NVM_SetSystemState(void)
-{
-	uint32_t subResult;
-
-	subResult = EEPROM_WriteData(EEPROM_SYS_STATE_ADR, (uint8_t*)&systemGlobalState, sizeof(sys_state_t));
-
-	subResult = (0 == subResult) ? 0 : (uint32_t)-1;
-
-	return subResult;
-}
-
-
 
 uint16_t CmdNVMWriteBytes(const uint8_t* const cmd, const uint16_t lng)
 {
@@ -202,62 +318,4 @@ uint16_t CmdNVMReadBytes(const uint8_t* const cmd, const uint16_t lng)
 	subResult = (subResult == 0) ? CMD_CUSTOM : (uint16_t)(-1);
 
 	return subResult;
-}
-
-uint32_t ExtractValue(const uint8_t* const pKeyWord,
-		const uint8_t* const pBUff,
-		const uint32_t buffLng,
-		uint32_t* val)
-{
-    const uint8_t* pBrowse = pBUff;
-
-    uint32_t strLng = 0;
-    uint32_t value = 0;
-	uint32_t decOrder = 1;
-	uint32_t keyWordFound = 0;
-
-    /* Is keyword in pBUff ? */
-    for (uint32_t idx = 0; idx < buffLng; idx++)
-    {
-        if (!memcmp(pBrowse, (char*)pKeyWord, strlen((char*)pKeyWord)))
-        {
-            keyWordFound = 1;
-            break;
-        }
-        (char*)(pBrowse++);
-    }
-
-    //if ((!keyWordFound) || ((pBUff - pBrowse) >= buffLng))
-    if (!keyWordFound)
-    {
-        /* Keyword is either not found or there is no data after keyword*/
-        *val = 0;
-        return 0;
-    }
-
-    /* Move pBrowse on the number */
-    pBrowse = (uint8_t*)(pBrowse + strlen((char*)pKeyWord));
-
-    for (uint32_t idx = 0; IS_NUM(pBrowse[idx]); idx++)
-    {
-        strLng++;
-    }
-
-    /* Create highest decimal order of the string */
-    for (uint32_t idx = 0; idx < strLng - 1; idx++)
-    {
-        decOrder = decOrder * 10;
-    }
-
-    /* Go from left to right through the string and create the int value */
-    for (uint32_t idx = 0; idx < strLng; idx++)
-    {
-        value += (pBrowse[idx] - '0') * decOrder;
-
-        decOrder = decOrder / 10;
-    }
-
-    *val = value;
-
-    return keyWordFound;
 }

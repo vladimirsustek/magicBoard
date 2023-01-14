@@ -56,31 +56,36 @@ typedef enum {
 
 typedef struct sys_state_flags
 {
-	uint8_t rdaEnabled : 1, /* To be non-volatile */
-			espEnabled : 1, /* To be non-volatile */
-
-			espConnected : 1, /* Being checked on runtime, no reason for non-volatile */
-			eepromFunctional : 1, /* Being checked on runtime, no reason for non-volatile */
-
+	uint8_t rdaEnabled : 1,
+			espEnabled : 1,
+			audioOutEnabled : 1,
+			dummyUnused : 1,
 	        dummy0xA : 4; /* To be non-volatile 0b1010 */
 }sys_state_flags_t;
 
 typedef struct sys_state
 {
-	uint16_t radioFreq;
-	uint8_t radioVolm;
+	uint16_t rda5807mFreq;
+	uint8_t rda5807mVolm;
 	sys_state_flags_t states;
 }sys_state_t;
 
-
-/* to be used as extern*/
-sys_state_t systemGlobalState;
-
 uint16_t CmdNVMWriteBytes(const uint8_t* const cmd, const uint16_t lng);
 uint16_t CmdNVMReadBytes(const uint8_t* const cmd, const uint16_t lng);
+
 uint32_t NVM_GetWIfi(nvm_adr_e adr, uint8_t* pSSIDpassword, uint32_t lng);
 uint32_t NVM_SetWifi(nvm_adr_e adr, uint8_t* pSSIDpassword, uint32_t lng);
-uint32_t NVM_GetSystemState(void);
-uint32_t NVM_SetSystemState(void);
+
+void NVM_SetRDAEnable(uint8_t en);
+void NVM_SetESPEnable(uint8_t en);
+void NVM_SetAudioOutEnable(uint8_t en);
+void NVM_SetRDAvolume(uint8_t volume);
+void NVM_SetRDAfrequency(uint16_t frequency);
+
+uint8_t NVM_GetRDAEnable();
+uint8_t NVM_GetESPEnable();
+uint8_t NVM_GetAudioOutEnable();
+uint8_t NVM_GetRDAvolume();
+uint16_t NVM_GetRDAfrequency();
 
 #endif /* INC_NVM_APP_H_ */

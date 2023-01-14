@@ -7,11 +7,8 @@ uint16_t CmdRDA5807mDoInit(const uint8_t* const pStrCmd, const uint16_t lng) {
         return CMD_RET_ERR;
     }
 
-	RDA5807mInit(systemGlobalState.radioFreq, systemGlobalState.radioVolm);
-
-	systemGlobalState.states.rdaEnabled = 1;
-	NVM_SetSystemState();
-
+	RDA5807mInit(NVM_GetRDAfrequency(), NVM_GetRDAvolume());
+	NVM_SetRDAEnable(1);
 
 	return CMD_RET_OK;
 }
@@ -25,9 +22,7 @@ uint16_t CmdRDA5807mDoReset(const uint8_t* const pStrCmd, const uint16_t lng) {
     }
 
 	RDA5807mReset();
-
-	systemGlobalState.states.rdaEnabled = 0;
-	NVM_SetSystemState();
+	NVM_SetRDAEnable(0);
 
     return CMD_RET_OK;
 
@@ -78,8 +73,7 @@ uint16_t CmdRDA5807mSetFreq(const uint8_t* const pStrCmd, const uint16_t lng) {
     freq += (pStrCmd[CMD_ARG_OFFSET + 3] - '0')*10;
     freq += (pStrCmd[CMD_ARG_OFFSET + 4] - '0')*1;
 
-	systemGlobalState.radioFreq = freq;
-	NVM_SetSystemState();
+	NVM_SetRDAfrequency(freq);
 
 	uint16_t result = RDA5807mSetFreq(freq);
 
@@ -102,8 +96,7 @@ uint16_t CmdRDA5807mSetVolm(const uint8_t* const pStrCmd, const uint16_t lng) {
     volm = (pStrCmd[CMD_ARG_OFFSET + 0] - '0')*10;
     volm += (pStrCmd[CMD_ARG_OFFSET + 1] - '0')*1;
 
-	systemGlobalState.radioVolm = volm;
-	NVM_SetSystemState();
+	NVM_SetRDAvolume(volm);
 
 	uint16_t result = RDA5807mSetVolm(volm);
 
