@@ -12,8 +12,13 @@
 
 char *pageIndex;
 
+/*Length of AT+CWJAP= + \r\n */
+#define CWJAP_LNG 9
+#define ATCMD_TERMINATION 2
+
 const char * atCmd ;
 const char * atCmd_RST;
+const char * atCmd_CWJAP;
 const char * atCmd_CWQAP;
 const char * atCmd_CWMODE;
 const char * atCmd_CIPMUX;

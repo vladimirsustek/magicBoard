@@ -7,7 +7,7 @@
 
 #include "esp8266_functions.h"
 
-#define PRINT_EACH_RECEIVE 1
+extern UART_HandleTypeDef huart3;
 
 /* Direct access to MDA controlled */
 extern char comUsrBuffer[COM_USR_RX_MESSAGES_MAX][ESP_COM_BUFF_LNG + 1];
@@ -39,14 +39,14 @@ extern uint32_t comUserBufferMsgReadIdx;
 #endif
 
 
-extern UART_HandleTypeDef huart3;
 
 uint16_t CmdESPConsoleATCmd(const uint8_t* const cmd, const uint16_t lng)
 {
 	uint16_t subResult;
 	char* auxPtr = (char*)(cmd + CMD_ESP8266_HEADER_LNG);
 
-	subResult = ESP_SendCommand(auxPtr, lng - CMD_ESP8266_HEADER_LNG);
+	subResult = espPort_sendCommand(auxPtr, lng - CMD_ESP8266_HEADER_LNG);
+	subResult += ESP_FetchAndPrintResponse();
 	subResult = (0 == subResult) ? CMD_CUSTOM : (uint16_t)(-1);
 
 	return subResult;
@@ -57,15 +57,27 @@ uint16_t CmdESPConsoleWrStr(const uint8_t* const str, const uint16_t lng)
 	uint16_t subResult;
 	char* auxPtr = (char*)(str + CMD_ESP8266_HEADER_LNG);
 
-	subResult = ESP_SendCommand(auxPtr, lng - CMD_ESP8266_HEADER_LNG);
+	subResult = espPort_sendCommand(auxPtr, lng - CMD_ESP8266_HEADER_LNG);
+	subResult += ESP_FetchAndPrintResponse();
 	subResult = (0 == subResult) ? CMD_CUSTOM : (uint16_t)(-1);
 
 	return subResult;
 }
 
+
+static void printEachMessage(uint32_t enable)
+{
+	if(!enable) return;
+	HAL_UART_Transmit(&huart3,
+			(uint8_t*)comUsrBuffer[comUserBufferMsgReadIdx],
+			(uint16_t)comUsrBufferLen[comUserBufferMsgReadIdx],
+			HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart3, (uint8_t*)("\r\n"), 2, HAL_MAX_DELAY);
+}
+
 // WARNING FUNCTION EXPECTS <CR><LF> termination
-uint32_t ESP_CheckRX(uint32_t timeOut,
-				     uint32_t blockingTimeOut,
+uint32_t ESP_CheckRX_Blocking(uint32_t timeOut,
+		             uint32_t printAllreceived,
 					 U32_pFn_pC_pC_U32_pC_pU32 processFn,
 					 char * keyWord,
 					 char **retStr,
@@ -73,86 +85,99 @@ uint32_t ESP_CheckRX(uint32_t timeOut,
 {
 	uint32_t rxResult = ESP_HARD_ERR;
 	uint32_t processingResult = ESP_HARD_ERR;
-	uint32_t okAlreadyArrived = 0;
 
-	if(blockingTimeOut)
+	do
 	{
-		do
-		{
-			rxResult = ESP_CheckRX_DMA_XUART(timeOut);
-		}
-		while(rxResult == ESP_RX_PENDING /*|| rxResult == ESP_TX_TIMEOUT*/ || rxResult == ESP_RX_SILENT);
+		rxResult = espPort_checkRXBuffer(timeOut);
+	}
+	while(rxResult == ESP_RX_PENDING /*|| rxResult == ESP_TX_TIMEOUT*/ || rxResult == ESP_RX_SILENT);
 
-		if(rxResult == ESP_OK)
+	if(rxResult == ESP_OK)
+	{
+		while(comUserBufferMsgIdx != comUserBufferMsgReadIdx)
 		{
-			while(comUserBufferMsgIdx != comUserBufferMsgReadIdx)
+
+			printEachMessage(printAllreceived);
+
+			if(processFn)
 			{
-#if PRINT_EACH_RECEIVE
-				HAL_UART_Transmit(&huart3,
-						(uint8_t*)comUsrBuffer[comUserBufferMsgReadIdx],
-						(uint16_t)comUsrBufferLen[comUserBufferMsgReadIdx],
-						HAL_MAX_DELAY);
-				HAL_UART_Transmit(&huart3, (uint8_t*)("\r\n"), 2, HAL_MAX_DELAY);
-#endif
 				processingResult = processFn(keyWord,
 											comUsrBuffer[comUserBufferMsgReadIdx],
 											comUsrBufferLen[comUserBufferMsgReadIdx],
 											retStr,
 											retU32);
-				comUserBufferMsgReadIdx = (comUserBufferMsgReadIdx + (uint32_t)1u) % COM_USR_RX_MESSAGES_MAX;
 			}
-		}
-		else
-		{
-			processingResult = rxResult;
+			else
+			{
+				processingResult = ESP_OK;
+			}
+			comUserBufferMsgReadIdx = (comUserBufferMsgReadIdx + (uint32_t)1u) % COM_USR_RX_MESSAGES_MAX;
 		}
 	}
 	else
 	{
-		if ((rxResult = ESP_CheckRX_DMA_XUART(timeOut)) == ESP_OK)
+		processingResult = rxResult;
+	}
+
+	return (processingResult + rxResult);
+}
+
+
+uint32_t ESP_CheckRX_NonBlocking(uint32_t timeOut,
+		 uint32_t printAllreceived,
+		 U32_pFn_pC_pC_U32_pC_pU32 processFn,
+		 char * keyWord,
+		 char **retStr,
+		 uint32_t * retU32)
+{
+	uint32_t rxResult = ESP_HARD_ERR;
+	uint32_t processingResult = ESP_HARD_ERR;
+
+	if ((rxResult = espPort_checkRXBuffer(timeOut)) == ESP_OK)
+	{
+		while(comUserBufferMsgIdx != comUserBufferMsgReadIdx)
 		{
-			while(comUserBufferMsgIdx != comUserBufferMsgReadIdx)
+			printEachMessage(printAllreceived);
+
+			if(processFn)
 			{
-#if PRINT_EACH_RECEIVE
-				HAL_UART_Transmit(&huart3,
-						(uint8_t*)comUsrBuffer[comUserBufferMsgReadIdx],
-						(uint16_t)comUsrBufferLen[comUserBufferMsgReadIdx],
-						HAL_MAX_DELAY);
-				HAL_UART_Transmit(&huart3, (uint8_t*)("\r\n"), 2, HAL_MAX_DELAY);
-#endif
 				processingResult = processFn(keyWord,
 											comUsrBuffer[comUserBufferMsgReadIdx],
 											comUsrBufferLen[comUserBufferMsgReadIdx],
 											retStr,
 											retU32);
-				comUserBufferMsgReadIdx = (comUserBufferMsgReadIdx + (uint32_t)1u) % COM_USR_RX_MESSAGES_MAX;
 			}
-		}
-		else
-		{
-			processingResult = rxResult;
+			else
+			{
+				processingResult = ESP_OK;
+			}
+			comUserBufferMsgReadIdx = (comUserBufferMsgReadIdx + (uint32_t)1u) % COM_USR_RX_MESSAGES_MAX;
 		}
 	}
-
-
-	if(okAlreadyArrived && processingResult != ESP_OK)
+	else
 	{
-		processingResult = ESP_OK;
+		processingResult = rxResult;
 	}
 
-	return processingResult;
+
+	return (processingResult + rxResult);
 }
 
 uint8_t* ESP_CheckResponse(char *pCmd, uint32_t cmdLng, uint32_t timeOut)
 {
-	const uint32_t blockingTimeoutYes = 1u;
-
+	const uint32_t printAllreceived = PRINT_ALL_RECEIVED;
 	uint32_t result = ESP_RSP_ERR;
 	uint32_t pDummyU32;
 
 	char *pDummyC = NULL;
 
-	result = ESP_CheckRX(timeOut, blockingTimeoutYes, ESP_CheckForKeyWord, pCmd, &pDummyC, &pDummyU32);
+	result = ESP_CheckRX_Blocking(
+			timeOut,
+			printAllreceived,
+			ESP_CheckForKeyWord,
+			pCmd,
+			&pDummyC,
+			&pDummyU32);
 
 	if (ESP_OK != result)
 	{
@@ -160,4 +185,12 @@ uint8_t* ESP_CheckResponse(char *pCmd, uint32_t cmdLng, uint32_t timeOut)
 	}
 
 	return (uint8_t*)pDummyC;
+}
+
+uint32_t ESP_FetchAndPrintResponse(void)
+{
+	const uint32_t printAllreceived = 1;
+	const uint32_t delay = 2000;
+	uint32_t result = ESP_CheckRX_Blocking(delay, printAllreceived, NULL, NULL, NULL, NULL);
+	return result;
 }

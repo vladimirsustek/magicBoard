@@ -15,20 +15,20 @@ extern SPI_HandleTypeDef hspi3;
 static uint32_t SPI1_NCSactivate(void)
 {
 	HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_RESET);
-	return 0u;
+	return EEPROM_OK;
 }
 
 static uint32_t SPI1_NCSdeactivate(void)
 {
 	HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_SET);
-	return 0u;
+	return EEPROM_OK;
 }
 
 static uint32_t EEPROM_WriteOperation(uint8_t *pDataTx, uint16_t Size)
 {
 	if (NULL == pDataTx)
 	{
-		return (uint32_t)(-1);
+		return EEPROM_ERR;
 	}
 
 	return (uint32_t)HAL_SPI_Transmit(&hspi3, pDataTx, Size, HAL_MAX_DELAY);
@@ -38,7 +38,7 @@ uint32_t EEPROM_ReadOperation(uint8_t* pDataRx, int16_t Size)
 {
 	if (NULL == pDataRx)
 	{
-		return (uint32_t)(-1);
+		return EEPROM_ERR;
 	}
 
 	return (uint32_t)HAL_SPI_Receive(&hspi3, pDataRx, Size, HAL_MAX_DELAY);
@@ -54,9 +54,9 @@ uint32_t EEPROM_WriteEnable(void)
 	result[2] = SPI1_NCSdeactivate();
 
 	if (0 == result[0] && 0 == result[1] && 0 == result[2])
-		return 0u;
+		return EEPROM_OK;
 	else
-		return (uint32_t)(-1);
+		return EEPROM_ERR;
 }
 
 uint32_t EEPROM_WriteDisaable(void)
@@ -69,9 +69,9 @@ uint32_t EEPROM_WriteDisaable(void)
 	result[2] = SPI1_NCSdeactivate();
 
 	if (0 == result[0] && 0 == result[1] && 0 == result[2])
-		return 0u;
+		return EEPROM_OK;
 	else
-		return (uint32_t)(-1);
+		return EEPROM_ERR;
 }
 
 uint32_t EEPROM_ReadStatusRegister(uint8_t *ret)
@@ -95,9 +95,9 @@ uint32_t EEPROM_ReadStatusRegister(uint8_t *ret)
 	*ret = dataRx[1];
 
 	if (0 == result[0] && 0 == result[1] && 0 == result[2] && 0 == result[3])
-		return 0u;
+		return EEPROM_OK;
 	else
-		return (uint32_t)(-1);
+		return EEPROM_ERR;
 }
 
 
@@ -112,9 +112,9 @@ uint32_t EEPROM_WriteStatusRegister(uint8_t value)
 	result[2] = SPI1_NCSdeactivate();
 
 	if (0 == result[0] && 0 == result[1] && 0 == result[2])
-		return 0u;
+		return EEPROM_OK;
 	else
-		return (uint32_t)(-1);
+		return EEPROM_ERR;
 }
 
 uint32_t EEPROM_Init(void)
@@ -148,9 +148,9 @@ static uint32_t EEPROM_WriteDataNoLogic(uint32_t address, uint8_t* pData, uint16
 	result[4] = SPI1_NCSdeactivate();
 
 	if (0 == result[0] && 0 == result[1] && 0 == result[2] && 0 == result[3])
-		return 0u;
+		return EEPROM_OK;
 	else
-		return (uint32_t)(-1);
+		return (uint32_t)EEPROM_ERR;
 
 }
 
@@ -175,12 +175,14 @@ uint32_t EEPROM_WriteData(uint32_t address, uint8_t* pData, uint16_t size)
 				cycleSize
 				);
 
+		/* Needed according to the 25AA1024 timing */
 		PLATFORM_DELAY_MS(10);
+
 		result += EEPROM_ReadStatusRegister(&status);
 
 		if(0 != status)
 		{
-			result = (uint16_t)(-1);
+			result = EEPROM_ERR;
 			break;
 		}
 
@@ -192,7 +194,7 @@ uint32_t EEPROM_WriteData(uint32_t address, uint8_t* pData, uint16_t size)
 	    cycleSize = (bytesToWrite > EEPROM_PAGE_SIZE) ? EEPROM_PAGE_SIZE : bytesToWrite;
 	}
 
-	result = (result != 0) ? -1 : 0;
+	result = (result != 0) ? EEPROM_OK : EEPROM_ERR;
 
 	return result;
 }
@@ -221,9 +223,9 @@ uint32_t EEPROM_ReadData(uint32_t address, uint8_t *pData, uint16_t Size)
 	result[4] = SPI1_NCSdeactivate();
 
 	if (0 == result[0] && 0 == result[1] && 0 == result[2] && 0 == result[3] && 0 == result[4])
-		return 0u;
+		return EEPROM_OK;
 	else
-		return (uint32_t)(-1);
+		return EEPROM_ERR;
 
 }
 

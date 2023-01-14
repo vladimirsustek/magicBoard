@@ -30,7 +30,8 @@
 #define EEPROM_START_ADDRESS	(uint32_t)(0x00000000)
 #define EEPROM_STOP_ADDRESS		(uint32_t)(0x0001FFFF)
 
-#define MAX_WRITE_AT_ONCE		(uint16_t)(256u)
+#define EEPROM_PAGE_SIZE		(uint16_t)(256u)
+#define MAX_WRITE_AT_ONCE		EEPROM_PAGE_SIZE
 
 #define STATUS_PROTECTION_0		(uint8_t)((0) << 2)
 #define STATUS_PROTECTION_1		(uint8_t)((1) << 2)
@@ -40,7 +41,9 @@
 #define STATUS_WIP				(uint8_t)(1)
 #define STATUS_WEN				(uint8_t)(2)
 
-#define EEPROM_PAGE_SIZE		(uint16_t)(256u)
+
+#define EEPROM_OK				(uint32_t)(0)
+#define EEPROM_ERR				(uint32_t)(-1)
 
 uint32_t EEPROM_Init(void);
 uint32_t EEPROM_WriteData(uint32_t address, uint8_t* pData, uint16_t Size);

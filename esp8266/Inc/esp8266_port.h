@@ -56,9 +56,9 @@
 
 typedef uint32_t (*U32_pFn_pC_pC_U32_pC_pU32)	(char *, char*, uint32_t, char **, uint32_t *);
 
-uint32_t ESP_ComInit(void);
-uint32_t ESP_SendCommand(const char* const pStrCmd, const uint32_t lng);
-uint32_t ESP_CheckRX_DMA_XUART(const uint32_t timeout);
+uint32_t espPort_comInit(void);
+uint32_t espPort_sendCommand(const char* const pStrCmd, const uint32_t lng);
+uint32_t espPort_checkRXBuffer(const uint32_t timeout);
 
 uint32_t ESP_Start_TimeTick(void);
 void ESP_IncrementTick(void);

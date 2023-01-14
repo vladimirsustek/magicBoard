@@ -10,8 +10,6 @@
 #include "nvm_app.h"
 #define STATIC_IP_AND_NEW_WIFI 0
 
-#define atCmd_CWJAP_LNG		(uint32_t)(strlen("AT+CWJAP="))
-
 static char httpReqBuff[MAX_HTTP_REQ_SIZE + 1] = {0};
 
 uint32_t ESP_HTTPinit (void)
@@ -19,15 +17,15 @@ uint32_t ESP_HTTPinit (void)
 
 	uint32_t result = 0;
 	uint8_t* subResult = 0;
-	uint8_t pSSIDpassword[EEPROM_PAGE_SIZE/2];
+	uint8_t pSSIDpassword[WIFI_ADR_LNG + CWJAP_LNG + ATCMD_TERMINATION];
 
 	// UART init and activate-deactivate RST pin of ESP8266
-	ESP_ComInit();
+	espPort_comInit();
 
 	// Software reset
 	for(uint8_t resetAttempts = 0; resetAttempts < 3; resetAttempts++)
 	{
-	    ESP_SendCommand(atCmd_RST, strlen(atCmd_RST));
+	    espPort_sendCommand(atCmd_RST, strlen(atCmd_RST));
 	    if(NULL == ESP_CheckResponse((char*)atRsp_ready, strlen(atRsp_ready), ESP_TIMEOUT_2s))
 	    {
 	    	result++;
@@ -49,42 +47,37 @@ uint32_t ESP_HTTPinit (void)
 
 	// TODO: check if AT+CWQAP is not error */
     //Disconnecting from current WIFI
-    ESP_SendCommand(atCmd_CWQAP, strlen(atCmd_CWQAP));
+    espPort_sendCommand(atCmd_CWQAP, strlen(atCmd_CWQAP));
     if(NULL == ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_2s)) result++;
 
 	/********* AT (just testing no-set/no-get command)**********/
-    ESP_SendCommand(atCmd, strlen(atCmd));
+    espPort_sendCommand(atCmd, strlen(atCmd));
     if(NULL == ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms)) result++;
 
 	/********* AT+CWMODE=1 **********/
-    ESP_SendCommand(atCmd_CWMODE, strlen(atCmd_CWMODE));
+    espPort_sendCommand(atCmd_CWMODE, strlen(atCmd_CWMODE));
     if(NULL == ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms)) result++;
 
 	/********* AT+CIPMUX **********/
-    ESP_SendCommand(atCmd_CIPMUX, strlen(atCmd_CIPMUX));
+    espPort_sendCommand(atCmd_CIPMUX, strlen(atCmd_CIPMUX));
     if(NULL == ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms)) result++;
 
 	/********* AT+CIPSERVER **********/
-    ESP_SendCommand(atCmd_CIPSERVER, strlen(atCmd_CIPSERVER));
+    espPort_sendCommand(atCmd_CIPSERVER, strlen(atCmd_CIPSERVER));
     if(NULL == ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms)) result++;
 
     // Iterative attempt to connect with predefined EEPROM stored WIFIs
-    for (uint32_t adr = EEPROM_WIFI_ADR_0;
-    		adr <= EEPROM_WIFI_ADR_3;
-    		adr += EEPROM_PAGE_SIZE/2)
+    for (uint32_t adr = WIFI_ADR_0;
+    		adr <= WIFI_ADR_3;
+    		adr += WIFI_ADR_LNG/2)
     {
-    	uint8_t* wifi = NVM_GetWIfi(adr, atCmd_CWJAP_LNG, pSSIDpassword);
+    	memset(pSSIDpassword, '\0', WIFI_ADR_LNG + CWJAP_LNG + ATCMD_TERMINATION);
+    	NVM_GetWIfi(adr, pSSIDpassword + CWJAP_LNG, WIFI_ADR_LNG);
 
-    	// If no WIFI fetched
-    	if (NULL == wifi)
-    	{
-    		// Attempt set unsuccessful and force a next read
-    		subResult = NULL;
-    		continue;
-    	}
-		memcpy(wifi, atCmd_CWJAP, atCmd_CWJAP_LNG);
+		memcpy(pSSIDpassword, atCmd_CWJAP, CWJAP_LNG);
+		memcpy(pSSIDpassword + strlen((char*)pSSIDpassword), (uint8_t*)"\r\n", 2);
 
-		ESP_SendCommand((char*)wifi, strlen((char*)wifi));
+		espPort_sendCommand((char*)pSSIDpassword, strlen((char*)pSSIDpassword));
 		subResult = ESP_CheckResponse((char*)atRsp_WifiGotIp,
 				strlen(atRsp_WifiGotIp),
 				ESP_TIMEOUT_15s);
@@ -116,15 +109,15 @@ uint32_t ESP_SendHTTP (char *str, uint32_t Link_ID)
 
 	sprintf (data, "%s%lu,%lu\r\n", atCmd_CIPSEND, Link_ID, len);
 
-    ESP_SendCommand(data, strlen(data));
+    espPort_sendCommand(data, strlen(data));
     ESP_CheckResponse(">", strlen(">"), ESP_TIMEOUT_300ms);
 
-    ESP_SendCommand(str, strlen(str));
+    espPort_sendCommand(str, strlen(str));
     ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms);
 
 	sprintf (data, "%s%lu\r\n",atCmd_CIPCLOSE, Link_ID);
 
-    ESP_SendCommand(data, strlen(data));
+    espPort_sendCommand(data, strlen(data));
     ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms);
 
     return 1;
@@ -160,11 +153,17 @@ uint32_t ESP_DetectedHTTP(char * key, char * buff, uint32_t buff_lng, char **ppR
 uint32_t ESP_CheckReceiveHTTP(char **ppHTTPreq, uint32_t *pHTTPreqLng)
 {
 	const uint32_t timeOut = 150u;
-	const uint32_t timeOutFlag = 0u;
+	const uint32_t printAllReceived = PRINT_ALL_RECEIVED;
 
 	uint32_t result = ESP_RSP_ERR, HTTPreqLng = 0;
 
-	result = ESP_CheckRX(timeOut, timeOutFlag, ESP_DetectedHTTP, NULL, ppHTTPreq, &HTTPreqLng);
+	result = ESP_CheckRX_NonBlocking(
+			timeOut,
+			printAllReceived,
+			ESP_DetectedHTTP,
+			NULL,
+			ppHTTPreq,
+			&HTTPreqLng);
 
 	*pHTTPreqLng = HTTPreqLng;
 

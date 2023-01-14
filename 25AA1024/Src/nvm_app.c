@@ -43,40 +43,82 @@ static uint32_t ExtractValue(const uint8_t* const pKeyWord,
 	printf("%s\r\n", pWIFI);
 #endif
 
-uint8_t* NVM_GetWIfi(uint32_t address, uint32_t offset, uint8_t* pSSIDpassword)
+
+
+/*
+ * @brief Set WIFI SSID and password from the NVM EEPROM address space
+ *
+ * @param adr WIFI_ADR_0 - WIFI_ADR_3
+ * @param pSSIDpassword string in format "SSID","PASSWORD"
+ * @param lng length of the string.
+ *
+ * @note Stored string is supposed to be directly concatenated with:
+ *
+ * ESP8266 command AT+CWJAP=<pSSIDpassword>\r\n
+ *
+ * Therefore, escape characters are needed: "\"SSID\",\"PASSWORD\"".
+ *
+ * @return NVM_ERR, NVM_OK
+ *
+ */
+/* Expected ESP8266 format with quotation marks and comma: "\"WIFI_NAME\",\"WIFI_PASSWORD\"" */
+uint32_t NVM_SetWifi(nvm_adr_e adr, uint8_t* pSSIDpassword, uint32_t lng)
 {
-	uint8_t* result = NULL;
-	uint8_t quotationMarkCnt = 0;
+	uint32_t result = NVM_ERR;
 
-	uint32_t subResult = (uint32_t)(-1);
-	uint16_t idx = 0;
-
-	if(offset <= 32)
+	if(pSSIDpassword == NULL || lng > WIFI_ADR_LNG)
 	{
-		subResult = EEPROM_ReadData(address, pSSIDpassword + offset, EEPROM_PAGE_SIZE/2);
+		return result;
+	}
 
-		for(idx = 0; idx < EEPROM_PAGE_SIZE/2; idx++)
+	if(adr == WIFI_ADR_0 ||
+			adr == WIFI_ADR_1 ||
+			adr == WIFI_ADR_2 ||
+			adr == WIFI_ADR_3)
+	{
+		result = EEPROM_WriteData((uint32_t)adr, pSSIDpassword, lng);
+
+		for(uint32_t nIdx = lng; nIdx < WIFI_ADR_LNG; nIdx++)
 		{
-			if (pSSIDpassword[idx + offset] == '\"')
-			{
-				quotationMarkCnt++;
-			}
-			if(4 == quotationMarkCnt)
-			{
-				idx++;
-				break;
-			}
+			result = EEPROM_WriteData((uint32_t)adr + nIdx, (uint8_t*)"\0", 1);
 		}
 	}
 
-	if (0 == subResult && 4 == quotationMarkCnt)
+	return result;
+}
+
+
+/*
+ * @brief Get WIFI SSID and password from the NVM EEPROM address space
+ *
+ * @param adr WIFI_ADR_0 - WIFI_ADR_3
+ * @param pSSIDpassword string in format "SSID","PASSWORD"
+ * @param lng must be always minimally of the WIFI_ADR_LNG size
+ *
+ * @note Stored string is supposed to be directly concatenated with:
+ *
+ * ESP8266 command AT+CWJAP=<pSSIDpassword>\r\n
+ *
+ * Therefore,  escape characters are needed: "\"SSID\",\"PASSWORD\"".
+ *
+ * @return NVM_ERR, NVM_OK
+ *
+ */
+uint32_t NVM_GetWIfi(nvm_adr_e adr, uint8_t* pSSIDpassword, uint32_t lng)
+{
+	uint32_t result = NVM_ERR;
+
+	if(pSSIDpassword == NULL || lng < WIFI_ADR_LNG)
 	{
-		if(!memcmp(pSSIDpassword + offset + idx, "\r\n", 2))
-		{
-			idx +=2;
-			memset(pSSIDpassword + offset + idx, '\0', EEPROM_PAGE_SIZE/2 - offset - idx);
-			result = pSSIDpassword;
-		}
+		return result;
+	}
+
+	if(adr == WIFI_ADR_0 ||
+			adr == WIFI_ADR_1 ||
+			adr == WIFI_ADR_2 ||
+			adr == WIFI_ADR_3)
+	{
+		result = EEPROM_ReadData((uint32_t)adr, pSSIDpassword, WIFI_ADR_LNG);
 	}
 
 	return result;

@@ -9,7 +9,6 @@
 #include "main.h"
 
 /* STM32 Hardware dependent UART handle */
-
 extern UART_HandleTypeDef huart7;
 extern DMA_HandleTypeDef hdma_uart7_rx;
 
@@ -29,7 +28,7 @@ static uint32_t sendTimeOut = 0;
 static uint32_t sendTimeOutStarted = 0;
 
 
-static uint32_t Do_2Sec_Reset(void)
+static uint32_t espPort_2secondReset(void)
 {
 	HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(ESP_PWR_GPIO_Port, ESP_PWR_Pin, GPIO_PIN_SET);
@@ -40,7 +39,7 @@ static uint32_t Do_2Sec_Reset(void)
 	return 0;
 }
 
-uint32_t Start_DMA_XUART(void)
+uint32_t espPort_startReceive(void)
 {
 	uint32_t result;
 	result = (uint32_t)HAL_UART_Receive_DMA(&huart7, (uint8_t*)uartX_rx_buf, ESP_COM_BUFF_LNG);
@@ -71,7 +70,7 @@ uint32_t Start_DMA_XUART(void)
  *
  */
 
-uint32_t ESP_CheckRX_DMA_XUART(const uint32_t timeout)
+uint32_t espPort_checkRXBuffer(const uint32_t timeout)
 {
 
 	uint32_t result = ESP_NEVER_VALUE;
@@ -156,18 +155,18 @@ uint32_t ESP_CheckRX_DMA_XUART(const uint32_t timeout)
 	return result;
 }
 
-uint32_t ESP_ComInit(void)
+uint32_t espPort_comInit(void)
 {
 	uint32_t result = 0;
 
-	Do_2Sec_Reset();
+	espPort_2secondReset();
 
-	result = Start_DMA_XUART();
+	result = espPort_startReceive();
 
 	return result;
 }
 
-uint32_t ESP_SendCommand(const char* const pStrCmd, const uint32_t lng)
+uint32_t espPort_sendCommand(const char* const pStrCmd, const uint32_t lng)
 {
 	uint32_t result = ESP_NEVER_VALUE;
 

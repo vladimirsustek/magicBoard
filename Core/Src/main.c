@@ -43,6 +43,7 @@
 #include "rda5807m.h"
 
 #include "tft.h"
+#include "fonts.h"
 #include "functions.h"
 
 #include "cli.h"
@@ -92,8 +93,6 @@ int main(void)
   uint8_t nrf1_rx[33] = {0};
   uint8_t nrf2_tx[33];
   uint8_t nrf2_rx[33] = {0};
-  uint8_t eepromData[9] = {0};
-  uint8_t pWIFI[EEPROM_PAGE_SIZE/2];
 
   /* USER CODE END 1 */
 
@@ -131,12 +130,13 @@ int main(void)
   /* USER CODE BEGIN 2 */
   ESP_HTTPinit();
 
-  //reset();
-  //tft_init(readID());
+  while(1);
+
+  reset();
+  tft_init(readID());
   //fillScreen(BLUE);
 
-  EEPROM_ReadData(0, eepromData, 8);
-  printf((char*)eepromData);
+  //void printnewtstr (int row, uint16_t txtcolor, const GFXfont *f, uint8_t txtsize, char *str)
 
   NRF_powerDown();
   NRF_powerDown_B();

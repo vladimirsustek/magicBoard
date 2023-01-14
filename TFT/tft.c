@@ -2856,7 +2856,14 @@ void drawPixel(int16_t x, int16_t y, uint16_t color)
 #endif
    setAddrWindow(x, y, x, y);
 //    CS_ACTIVE; WriteCmd(_MW); write16(color); CS_IDLE; //-0.01s +98B
-   if (is9797) { CS_ACTIVE; WriteCmd(_MW); write24(color); CS_IDLE;} else
+   if (is9797)
+   {
+	   CS_ACTIVE;
+	   WriteCmd(_MW);
+	   write24(color);
+	   CS_IDLE;
+   }
+   else
    WriteCmdData(_MW, color);
 }
 
