@@ -17,6 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <magneto120.h>
 #include "main.h"
 #include "adc.h"
 #include "dac.h"
@@ -49,6 +50,7 @@
 #include "cli.h"
 
 #include "cmd_dispatcher.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,13 +70,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern const uint8_t lucidaSans_150ptBitmaps[];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+extern void drawPixel(int16_t x, int16_t y, uint16_t color);
+void printMagneto150(uint32_t offset, uint32_t idx);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -114,10 +117,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_ETH_Init();
+  //MX_DMA_Init();
+  //MX_ETH_Init();
   MX_USART3_UART_Init();
-  MX_USB_OTG_FS_USB_Init();
+  //MX_USB_OTG_FS_USB_Init();
   MX_DAC_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
@@ -129,11 +132,20 @@ int main(void)
   MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
 
-  //NVM_SetAudioOutEnable(1);
-  //NVM_SetESPEnable(1);
-  //NVM_SetRDAEnable(1);
-  //NVM_SetRDAfrequency(12345);
-  //NVM_SetRDAvolume(12);
+  reset();
+  tft_init(readID());
+  fillScreen(BLACK);
+
+  while(1)
+  {
+	  printMagneto150(370, 9);
+	  printMagneto150(250, 8);
+	  printMagneto150(130, 7);
+	  printMagneto150(10, 6);
+  }
+
+
+  while(1);
 
   printf("AudioOut %d\r\n", NVM_GetAudioOutEnable());
   printf("ESP %d\r\n", NVM_GetESPEnable());
@@ -141,14 +153,7 @@ int main(void)
   printf("RDAfrequency %d\r\n", NVM_GetRDAfrequency());
   printf("RDAvolume %d\r\n", NVM_GetRDAvolume());
 
-  ESP_HTTPinit();
-
-  //reset();
-  //tft_init(readID());
-  //fillScreen(BLUE);
-
-  while(1);
-
+  //ESP_HTTPinit();
 
   NRF_powerDown();
   NRF_powerDown_B();
@@ -295,7 +300,45 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void printMagneto150(uint32_t xdist, uint32_t idx)
+{
+	uint32_t width = magneto_120ptDescriptors[idx].width;
 
+	if(width % 8)
+	{
+		width = width / 8 + 1;
+	}
+	else
+	{
+		width = width / 8;
+	}
+
+	uint32_t offset = magneto_120ptDescriptors[idx].offset;
+	uint32_t nextOffset = magneto_120ptDescriptors[idx + 1].offset;
+	uint8_t auxByte;
+
+	uint32_t narrow1 = (idx == 1) ? 1 : 0;
+
+
+	  for(uint32_t idy = 0; idy < (nextOffset - offset)/width; idy++)
+	  {
+		  for(uint32_t idx = 0; idx < width*8; idx++)
+		  {
+			  if(idx % 8 == 0)
+			  {
+				  auxByte = magneto_120ptBitmaps[offset + idy* width + idx / 8];
+			  }
+
+			  uint8_t printByte = auxByte & (1 << (7 - (idx % 8)));
+			  printByte = printByte >> (7 - (idx % 8));
+
+			  if(printByte)
+			  {
+				  drawPixel(50 + idy, xdist + idx + 50*narrow1, WHITE);
+			  }
+		  }
+	  }
+}
 /* USER CODE END 4 */
 
 /**
