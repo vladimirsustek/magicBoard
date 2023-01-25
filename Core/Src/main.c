@@ -17,7 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <magneto120.h>
+#include <magneto100.h>
 #include "main.h"
 #include "adc.h"
 #include "dac.h"
@@ -70,14 +70,18 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern const uint8_t lucidaSans_150ptBitmaps[];
+uint32_t cursorLine0 = 0;
+uint32_t cursorLine1 = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 extern void drawPixel(int16_t x, int16_t y, uint16_t color);
-void printMagneto150(uint32_t offset, uint32_t idx);
+void printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx);
+void _printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx);
+void printMagneto40(uint32_t xOffset, uint32_t yOffset, uint32_t idx);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -136,14 +140,59 @@ int main(void)
   tft_init(readID());
   fillScreen(BLACK);
 
+
+#define MAX_X 480
+#define CLEARANCE 5
+#define MAX_WIDTH 92
+#define POS_0 (CLEARANCE)
+#define POS_1 (MAX_WIDTH + CLEARANCE)
+#define POS_2 (MAX_X - CLEARANCE*4 - MAX_WIDTH*2)
+#define POS_3 (MAX_X - CLEARANCE*2 - MAX_WIDTH)
+
+
+  fillCircle((140+141/2)-20, 240, 10, WHITE);
+  fillCircle((140+141/2)+20, 240, 10, WHITE);
+
+  uint8_t hhmm[4] = {0,0,0,1};
+  uint8_t hhmmOld[4] = {1,2,3,4};
+
   while(1)
   {
-	  printMagneto150(370, 9);
-	  printMagneto150(250, 8);
-	  printMagneto150(130, 7);
-	  printMagneto150(10, 6);
+	  if(hhmm[0] != hhmmOld[0])
+	  {
+		  _printMagneto100(POS_0, 130, hhmmOld[0]);
+		  printMagneto100(POS_0, 130, hhmm[0]);
+		  hhmmOld[0] = hhmm[0];
+	  }
+
+	  if(hhmm[1] != hhmmOld[1])
+	  {
+		  _printMagneto100(POS_1, 130, hhmmOld[1]);
+		  printMagneto100(POS_1, 130, hhmm[1]);
+		  hhmmOld[1] = hhmm[1];
+	  }
+
+	  if(hhmm[2] != hhmmOld[2])
+	  {
+		  _printMagneto100(POS_2, 130, hhmmOld[2]);
+		  printMagneto100(POS_2, 130, hhmm[2]);
+		  hhmmOld[2] = hhmm[2];
+	  }
+
+	  if(hhmm[3] != hhmmOld[3])
+	  {
+		  _printMagneto100(POS_3, 130, hhmmOld[3]);
+		  printMagneto100(POS_3, 130, hhmm[3]);
+		  hhmmOld[3] = hhmm[3];
+	  }
+
   }
 
+
+  printMagneto40(0, 0, '2' - 33);
+  printMagneto40(50, 0, '5' - 33);
+  printMagneto40(100, 0, '4' - 33);
+  printMagneto40(150, 0, 'C' - 33);
 
   while(1);
 
@@ -300,44 +349,107 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void printMagneto150(uint32_t xdist, uint32_t idx)
+void printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
 {
-	uint32_t width = magneto_120ptDescriptors[idx].width;
+	uint32_t adrOffset = magneto_100ptDescriptors[idx].offset;
+	uint32_t width = magneto_100ptDescriptors[idx].width;
+	uint32_t righAlignOffset = MAX_WIDTH - magneto_100ptDescriptors[idx].width;
 
-	if(width % 8)
-	{
-		width = width / 8 + 1;
-	}
-	else
-	{
-		width = width / 8;
-	}
+	/* Get align width in bytes*/
+	width = (width % 8) ? width / 8 + 1 : width / 8;
 
-	uint32_t offset = magneto_120ptDescriptors[idx].offset;
-	uint32_t nextOffset = magneto_120ptDescriptors[idx + 1].offset;
-	uint8_t auxByte;
+	uint32_t height = (magneto_100ptDescriptors[idx + 1].offset - adrOffset)/width;
+	uint8_t inspectedByte = 0;
+	uint8_t inspectedBit = 0;
 
-	uint32_t narrow1 = (idx == 1) ? 1 : 0;
-
-
-	  for(uint32_t idy = 0; idy < (nextOffset - offset)/width; idy++)
+	  for(uint32_t line = 0; line < height; line++)
 	  {
-		  for(uint32_t idx = 0; idx < width*8; idx++)
+		  for(uint32_t pixel = 0; pixel < width*8; pixel++)
 		  {
-			  if(idx % 8 == 0)
+			  if(pixel % 8 == 0)
 			  {
-				  auxByte = magneto_120ptBitmaps[offset + idy* width + idx / 8];
+				  inspectedByte = magneto_100ptBitmaps[adrOffset + line* width + pixel / 8];
 			  }
 
-			  uint8_t printByte = auxByte & (1 << (7 - (idx % 8)));
-			  printByte = printByte >> (7 - (idx % 8));
+			  inspectedBit = inspectedByte & (1 << (7 - (pixel % 8)));
+			  inspectedBit = inspectedBit >> (7 - (pixel % 8));
 
-			  if(printByte)
+			  if(inspectedBit)
 			  {
-				  drawPixel(50 + idy, xdist + idx + 50*narrow1, WHITE);
+				  drawPixel(height - line + yOffset, xOffset + pixel + righAlignOffset, WHITE);
 			  }
 		  }
 	  }
+
+}
+
+void _printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
+{
+	uint32_t adrOffset = magneto_100ptDescriptors[idx].offset;
+	uint32_t width = magneto_100ptDescriptors[idx].width;
+	uint32_t righAlignOffset = MAX_WIDTH - magneto_100ptDescriptors[idx].width;
+
+	/* Get align width in bytes*/
+	width = (width % 8) ? width / 8 + 1 : width / 8;
+
+	uint32_t height = (magneto_100ptDescriptors[idx + 1].offset - adrOffset)/width;
+	uint8_t inspectedByte = 0;
+	uint8_t inspectedBit = 0;
+
+	  for(uint32_t line = 0; line < height; line++)
+	  {
+		  for(uint32_t pixel = 0; pixel < width*8; pixel++)
+		  {
+			  if(pixel % 8 == 0)
+			  {
+				  inspectedByte = magneto_100ptBitmaps[adrOffset + line* width + pixel / 8];
+			  }
+
+			  inspectedBit = inspectedByte & (1 << (7 - (pixel % 8)));
+			  inspectedBit = inspectedBit >> (7 - (pixel % 8));
+
+			  if(inspectedBit)
+			  {
+				  drawPixel(height - line + yOffset, xOffset + pixel + righAlignOffset, BLACK);
+			  }
+		  }
+	  }
+
+}
+
+void printMagneto40(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
+{
+	uint32_t adrOffset = magneto_60ptDescriptors[idx].offset;
+	uint32_t width = magneto_60ptDescriptors[idx].width;
+
+	/* Get align width in bytes*/
+	width = (width % 8) ? width / 8 + 1 : width / 8;
+
+	uint32_t height = (magneto_60ptDescriptors[idx + 1].offset - adrOffset)/width;
+	uint8_t inspectedByte = 0;
+	uint8_t inspectedBit = 0;
+
+	  for(uint32_t line = 0; line < height; line++)
+	  {
+		  for(uint32_t pixel = 0; pixel < width*8; pixel++)
+		  {
+			  if(pixel % 8 == 0)
+			  {
+				  inspectedByte = magneto_60ptBitmaps[adrOffset + line* width + pixel / 8];
+			  }
+
+			  inspectedBit = inspectedByte & (1 << (7 - (pixel % 8)));
+			  inspectedBit = inspectedBit >> (7 - (pixel % 8));
+
+			  if(inspectedBit)
+			  {
+				  drawPixel(height - line + yOffset, pixel + cursorLine0, WHITE);
+			  }
+		  }
+	  }
+
+	  cursorLine0 += magneto_60ptDescriptors[idx].width + 2;
+
 }
 /* USER CODE END 4 */
 
