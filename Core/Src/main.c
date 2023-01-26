@@ -140,6 +140,14 @@ int main(void)
   tft_init(readID());
   fillScreen(BLACK);
 
+  uint32_t cursor = 5;
+  uint32_t line = 300;
+  char str[]= "In UK they drive left,in my country on whats left!";
+  for(int i = 0; i < strlen(str); i++)
+  {
+	  cursor += sPrintCalibri16(cursor, line, str[i] - 33, WHITE);
+  }
+
   printMagneto100(POS_0, TEXT_OFFSET, 0);
   printMagneto100(POS_1, TEXT_OFFSET, 1);
   printMagneto100(POS_2, TEXT_OFFSET, 2);
@@ -147,7 +155,7 @@ int main(void)
   fillCircle(DOT_1Y, DOT_1X, 10, WHITE);
   fillCircle(DOT_2Y, DOT_2X, 10, WHITE);
 
-  uint32_t cursor = 5;
+  cursor = 5;
 
   cursor += printMagneto40(cursor, 0, '1' - 33);
   cursor += printMagneto40(cursor, 0, '1' - 33);

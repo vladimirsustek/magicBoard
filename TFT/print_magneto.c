@@ -1,5 +1,35 @@
 #include "print_magneto.h"
 
+/* Functions:
+ *
+ * - printMagneto100()
+ * - eraseMagneto100()
+ * - printMagneto40()
+ * - eraseMagneto40()
+ * - printMagneto40Degree()
+ * - eraseMagneto40Degree()
+ *
+ * are customized for 480*320 display which is portrait oriented
+ * by default (x dimension shorter than y), but display is flipped
+ * to landscape. Each font character is print pixel by pixel using
+ * drawPixel(x, y, color) and due to landscape orientation is used
+ * as drawPixel(y, x, color).
+ *
+ * print are always WHITE, erase is basically just print BLACK.
+ *
+ * printMagneto100() and eraseMagneto100() expects coordinates x, y
+ * thus user must calculate, where the character is print and also
+ * must count with offset for adjacent (before or after) print symbols.
+ *
+ *
+ * magneto_100ptBitmaps[]
+ * magneto_40ptBitmaps[]
+ *
+ * magneto_100ptDescriptors[]
+ * magneto_40ptDescriptors[]
+ *
+ * */
+
 static uint32_t sPrintMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx, uint32_t color)
 {
 	uint16_t adrOffset = magneto_100ptDescriptors[idx].offset;

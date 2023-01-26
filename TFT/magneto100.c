@@ -2,40 +2,7 @@
 //  Font data for Magneto 100pt
 //
 
-#include <magneto100.h>
-
-uint32_t cursorLine0 = 5;
-uint32_t cursorLine1 = 5;
-
-/* Functions:
- *
- * - printMagneto100()
- * - eraseMagneto100()
- * - printMagneto40()
- * - eraseMagneto40()
- * - printMagneto40Degree()
- * - eraseMagneto40Degree()
- *
- * are customized for 480*320 display which is portrait oriented
- * by default (x dimension shorter than y), but display is flipped
- * to landscape. Each font character is print pixel by pixel using
- * drawPixel(x, y, color) and due to landscape orientation is used
- * as drawPixel(y, x, color).
- *
- * print are always WHITE, erase is basically just print BLACK.
- *
- * printMagneto100() and eraseMagneto100() expects coordinates x, y
- * thus user must calculate, where the character is print and also
- * must count with offset for adjacent (before or after) print symbols.
- *
- *
- * magneto_100ptBitmaps[]
- * magneto_40ptBitmaps[]
- *
- * magneto_100ptDescriptors[]
- * magneto_40ptDescriptors[]
- *
- * */
+#include "magneto100.h"
 
 // Character bitmaps for Magneto 100pt
 const uint8_t magneto_100ptBitmaps[] =

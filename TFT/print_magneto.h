@@ -30,9 +30,9 @@
 #define POS_3 				(MAX_X - CLEARANCE*2 - MAX_WIDTH)
 #define POS_COLON			(MAX_X/2)
 
-#define DOT_1Y				((TEXT_OFFSET+HEIGHT/2)-COLON_DIST)
+#define DOT_1Y				((TEXT_OFFSET+HEIGHT/2)+COLON_DIST)
 #define DOT_1X				(POS_COLON)
-#define DOT_2Y				((TEXT_OFFSET+HEIGHT/2)+COLON_DIST)
+#define DOT_2Y				((TEXT_OFFSET+HEIGHT/2)-COLON_DIST)
 #define DOT_2X  			(POS_COLON-COLON_DIST/2)
 
 uint32_t printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx);
