@@ -24,6 +24,7 @@
 #include "dma.h"
 #include "eth.h"
 #include "i2c.h"
+#include "rtc.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -51,6 +52,7 @@
 
 #include "cmd_dispatcher.h"
 
+#include "print_magneto.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,6 +62,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define ADC_CHANNEL_VREFINT     ((uint32_t)ADC_CHANNEL_17)
+#define ADC_CHANNEL_VBAT        ((uint32_t)ADC_CHANNEL_18)
+#define ADC_CHANNEL_TEMPSENSOR  ((uint32_t)(ADC_CHANNEL_18 | 0x10000000U))
+#include "stm32f7xx_hal_adc.h"
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,18 +76,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint32_t cursorLine0 = 0;
-uint32_t cursorLine1 = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-extern void drawPixel(int16_t x, int16_t y, uint16_t color);
-void printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx);
-void _printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx);
-void printMagneto40(uint32_t xOffset, uint32_t yOffset, uint32_t idx);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -116,85 +115,46 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  //MX_DMA_Init();
-  //MX_ETH_Init();
+  MX_ETH_Init();
   MX_USART3_UART_Init();
-  //MX_USB_OTG_FS_USB_Init();
+  MX_USB_OTG_FS_USB_Init();
   MX_DAC_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
+  MX_DMA_Init();
   MX_UART7_Init();
   MX_TIM2_Init();
   MX_I2C2_Init();
   MX_I2C4_Init();
   MX_ADC1_Init();
   MX_TIM9_Init();
+  MX_RTC_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
   reset();
   tft_init(readID());
   fillScreen(BLACK);
 
+  printMagneto100(POS_0, TEXT_OFFSET, 0);
+  printMagneto100(POS_1, TEXT_OFFSET, 1);
+  printMagneto100(POS_2, TEXT_OFFSET, 2);
+  printMagneto100(POS_3, TEXT_OFFSET, 3);
+  fillCircle(DOT_1Y, DOT_1X, 10, WHITE);
+  fillCircle(DOT_2Y, DOT_2X, 10, WHITE);
 
-#define MAX_X 480
-#define CLEARANCE 5
-#define MAX_WIDTH 92
-#define POS_0 (CLEARANCE)
-#define POS_1 (MAX_WIDTH + CLEARANCE)
-#define POS_2 (MAX_X - CLEARANCE*4 - MAX_WIDTH*2)
-#define POS_3 (MAX_X - CLEARANCE*2 - MAX_WIDTH)
+  uint32_t cursor = 5;
 
-
-  fillCircle((140+141/2)-20, 240, 10, WHITE);
-  fillCircle((140+141/2)+20, 240, 10, WHITE);
-
-  uint8_t hhmm[4] = {0,0,0,1};
-  uint8_t hhmmOld[4] = {1,2,3,4};
-
-  while(1)
-  {
-	  if(hhmm[0] != hhmmOld[0])
-	  {
-		  _printMagneto100(POS_0, 130, hhmmOld[0]);
-		  printMagneto100(POS_0, 130, hhmm[0]);
-		  hhmmOld[0] = hhmm[0];
-	  }
-
-	  if(hhmm[1] != hhmmOld[1])
-	  {
-		  _printMagneto100(POS_1, 130, hhmmOld[1]);
-		  printMagneto100(POS_1, 130, hhmm[1]);
-		  hhmmOld[1] = hhmm[1];
-	  }
-
-	  if(hhmm[2] != hhmmOld[2])
-	  {
-		  _printMagneto100(POS_2, 130, hhmmOld[2]);
-		  printMagneto100(POS_2, 130, hhmm[2]);
-		  hhmmOld[2] = hhmm[2];
-	  }
-
-	  if(hhmm[3] != hhmmOld[3])
-	  {
-		  _printMagneto100(POS_3, 130, hhmmOld[3]);
-		  printMagneto100(POS_3, 130, hhmm[3]);
-		  hhmmOld[3] = hhmm[3];
-	  }
-
-  }
-
-
-  printMagneto40(0, 0, '2' - 33);
-  printMagneto40(50, 0, '5' - 33);
-  printMagneto40(100, 0, '4' - 33);
-  printMagneto40(150, 0, 'C' - 33);
-
-  while(1);
+  cursor += printMagneto40(cursor, 0, '1' - 33);
+  cursor += printMagneto40(cursor, 0, '1' - 33);
+  cursor += printMagneto40(cursor, 0, '.' - 33);
+  cursor += printMagneto40(cursor, 0, '1' - 33);
+  cursor += printMagneto40Degree(cursor, 0);
+  cursor += printMagneto40(cursor, 0, 'C' - 33);
 
   printf("AudioOut %d\r\n", NVM_GetAudioOutEnable());
   printf("ESP %d\r\n", NVM_GetESPEnable());
@@ -236,7 +196,6 @@ int main(void)
 	  {
 		  CmdDispatch(cli.pBegin, cli.length);
 	  }
-	  continue;
 
 	  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 	  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
@@ -310,18 +269,19 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 96;
+  RCC_OscInitStruct.PLL.PLLN = 216;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 9;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -339,118 +299,16 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
   {
     Error_Handler();
   }
 }
 
 /* USER CODE BEGIN 4 */
-void printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
-{
-	uint32_t adrOffset = magneto_100ptDescriptors[idx].offset;
-	uint32_t width = magneto_100ptDescriptors[idx].width;
-	uint32_t righAlignOffset = MAX_WIDTH - magneto_100ptDescriptors[idx].width;
-
-	/* Get align width in bytes*/
-	width = (width % 8) ? width / 8 + 1 : width / 8;
-
-	uint32_t height = (magneto_100ptDescriptors[idx + 1].offset - adrOffset)/width;
-	uint8_t inspectedByte = 0;
-	uint8_t inspectedBit = 0;
-
-	  for(uint32_t line = 0; line < height; line++)
-	  {
-		  for(uint32_t pixel = 0; pixel < width*8; pixel++)
-		  {
-			  if(pixel % 8 == 0)
-			  {
-				  inspectedByte = magneto_100ptBitmaps[adrOffset + line* width + pixel / 8];
-			  }
-
-			  inspectedBit = inspectedByte & (1 << (7 - (pixel % 8)));
-			  inspectedBit = inspectedBit >> (7 - (pixel % 8));
-
-			  if(inspectedBit)
-			  {
-				  drawPixel(height - line + yOffset, xOffset + pixel + righAlignOffset, WHITE);
-			  }
-		  }
-	  }
-
-}
-
-void _printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
-{
-	uint32_t adrOffset = magneto_100ptDescriptors[idx].offset;
-	uint32_t width = magneto_100ptDescriptors[idx].width;
-	uint32_t righAlignOffset = MAX_WIDTH - magneto_100ptDescriptors[idx].width;
-
-	/* Get align width in bytes*/
-	width = (width % 8) ? width / 8 + 1 : width / 8;
-
-	uint32_t height = (magneto_100ptDescriptors[idx + 1].offset - adrOffset)/width;
-	uint8_t inspectedByte = 0;
-	uint8_t inspectedBit = 0;
-
-	  for(uint32_t line = 0; line < height; line++)
-	  {
-		  for(uint32_t pixel = 0; pixel < width*8; pixel++)
-		  {
-			  if(pixel % 8 == 0)
-			  {
-				  inspectedByte = magneto_100ptBitmaps[adrOffset + line* width + pixel / 8];
-			  }
-
-			  inspectedBit = inspectedByte & (1 << (7 - (pixel % 8)));
-			  inspectedBit = inspectedBit >> (7 - (pixel % 8));
-
-			  if(inspectedBit)
-			  {
-				  drawPixel(height - line + yOffset, xOffset + pixel + righAlignOffset, BLACK);
-			  }
-		  }
-	  }
-
-}
-
-void printMagneto40(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
-{
-	uint32_t adrOffset = magneto_60ptDescriptors[idx].offset;
-	uint32_t width = magneto_60ptDescriptors[idx].width;
-
-	/* Get align width in bytes*/
-	width = (width % 8) ? width / 8 + 1 : width / 8;
-
-	uint32_t height = (magneto_60ptDescriptors[idx + 1].offset - adrOffset)/width;
-	uint8_t inspectedByte = 0;
-	uint8_t inspectedBit = 0;
-
-	  for(uint32_t line = 0; line < height; line++)
-	  {
-		  for(uint32_t pixel = 0; pixel < width*8; pixel++)
-		  {
-			  if(pixel % 8 == 0)
-			  {
-				  inspectedByte = magneto_60ptBitmaps[adrOffset + line* width + pixel / 8];
-			  }
-
-			  inspectedBit = inspectedByte & (1 << (7 - (pixel % 8)));
-			  inspectedBit = inspectedBit >> (7 - (pixel % 8));
-
-			  if(inspectedBit)
-			  {
-				  drawPixel(height - line + yOffset, pixel + cursorLine0, WHITE);
-			  }
-		  }
-	  }
-
-	  cursorLine0 += magneto_60ptDescriptors[idx].width + 2;
-
-}
 /* USER CODE END 4 */
 
 /**
