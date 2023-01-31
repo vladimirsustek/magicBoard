@@ -4,9 +4,7 @@ The magicBoard is supposed to multi-purpose embedded device based on the MCU ARM
 STM32F767ZI, namelly on the development board [STM32 Nucleo-144](https://www.markdownguide.org/basic-syntax)
 equipped with customized<br>shield to extend Nucleo's functionality.
 
-
-
-![alt text for screen readers](/Docs/demo.png "Text to show on mouseover")
+<img src="/Docs/demo.jpg" alt="Demo" title="Demo">
 
 <h2>Intended usage is:</h2>
 <ol>
