@@ -99,6 +99,12 @@ static uint32_t sPrintMagneto60(uint32_t xOffset, uint32_t yOffset, uint32_t idx
 	  return magneto_60ptDescriptors[idx].width;
 }
 
+void printMagnetoComa(void)
+{
+	  fillCircle(DOT_1Y, DOT_1X, 10, WHITE);
+	  fillCircle(DOT_2Y, DOT_2X, 10, WHITE);
+}
+
 uint32_t printMagneto100(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
 {
 	return sPrintMagneto100(xOffset, yOffset, idx, PRINT_COLOR);

@@ -7,7 +7,10 @@
 
 
 #include "esp8266_http_server.h"
+#include "cmd_rda5807m.h"
 #include "nvm_app.h"
+#include "rtc.h"
+
 #define STATIC_IP_AND_NEW_WIFI 0
 
 static char httpReqBuff[MAX_HTTP_REQ_SIZE + 1] = {0};
@@ -175,37 +178,35 @@ char* ESP_ProcessHTTP(char *pHTTPReq, uint32_t hhhtReqLng)
 		if(ESP_ExtractString("DO_INIT", pHTTPReq, hhhtReqLng, &DummyLng))
 		{
 			sprintf(auxStr, "DO_INIT\r\n");
-			//CmdRDA5807mDoInit(pBuff, strlen(auxStr));
+			CmdRDA5807mDoInit(pBuff, strlen(auxStr));
 		}
 		if(ESP_ExtractValue("time=", pHTTPReq, hhhtReqLng, &value) && ESP_ExtractString("ST_TIME", pHTTPReq, hhhtReqLng, &DummyLng))
 		{
-			//RTC_TimeTypeDef rtc;
-
-			//rtc.Hours = value / 100;
-			//rtc.Minutes = value % 100;
-			//rtc.Seconds = 0;
-
-			//HAL_RTC_SetTime(&hrtc, &rtc, RTC_FORMAT_BIN);
+			RTC_TimeTypeDef rtc;
+			rtc.Hours = value / 100;
+			rtc.Minutes = value % 100;
+			rtc.Seconds = 0;
+			HAL_RTC_SetTime(&hrtc, &rtc, RTC_FORMAT_BIN);
 		}
 		if(ESP_ExtractString("DO_RSET", pHTTPReq, hhhtReqLng, &DummyLng))
 		{
 			sprintf(auxStr, "DO_RSET\r\n");
-			//CmdRDA5807mDoReset(pBuff, strlen(auxStr));
+			CmdRDA5807mDoReset(pBuff, strlen(auxStr));
 		}
 		if(ESP_ExtractString("ST_MUTE", pHTTPReq, hhhtReqLng, &DummyLng))
 		{
 			sprintf(auxStr, "ST_MUTE_%c\r\n", '?');
-			//CmdRDA5807mSetMute(pBuff, strlen(auxStr));
+			CmdRDA5807mSetMute(pBuff, strlen(auxStr));
 		}
 		if(ESP_ExtractValue("volm=", pHTTPReq, hhhtReqLng, &value) && ESP_ExtractString("ST_VOLM", pHTTPReq, hhhtReqLng, &DummyLng))
 		{
 			sprintf(auxStr, "ST_VOLM_%02ld\r\n", value);
-			//CmdRDA5807mSetVolm(pBuff, strlen(auxStr));
+			CmdRDA5807mSetVolm(pBuff, strlen(auxStr));
 		}
 		if(ESP_ExtractValue("freq=", pHTTPReq, hhhtReqLng, &value) && ESP_ExtractString("ST_FREQ", pHTTPReq, hhhtReqLng, &DummyLng))
 		{
 			sprintf(auxStr, "ST_FREQ_%05ld\r\n", value);
-			//CmdRDA5807mSetFreq(pBuff, strlen(auxStr));
+			CmdRDA5807mSetFreq(pBuff, strlen(auxStr));
 		}
 
 		ESP_SendHTTP((char*)pageIndex, linkNum);

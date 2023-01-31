@@ -6,7 +6,7 @@ equipped with customized<br>shield to extend Nucleo's functionality.
 
 
 
-![alt text for screen readers](/Work_NOTES/clear_teams_cache.png "Text to show on mouseover")
+![alt text for screen readers](/Docs/demo.png "Text to show on mouseover")
 
 <h2>Intended usage is:</h2>
 <ol>
@@ -26,7 +26,7 @@ equipped with customized<br>shield to extend Nucleo's functionality.
 
 <h2>magicBoard shield features:</h2>
 
-For more hardware details see [schematics](www.seznam.cz) located in this repo
+For more hardware details see schematics located in the "Docs".
 
 <ol>
   <li><b>MONO AUDIO IN - analog pre-processing of 3.5mm jack signal</b><ul>

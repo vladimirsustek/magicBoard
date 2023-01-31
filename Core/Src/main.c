@@ -53,6 +53,9 @@
 #include "cmd_dispatcher.h"
 
 #include "print_magneto.h"
+#include "calibri16.h"
+
+#include "stm32f7xx_hal_adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,10 +65,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define ADC_CHANNEL_VREFINT     ((uint32_t)ADC_CHANNEL_17)
-#define ADC_CHANNEL_VBAT        ((uint32_t)ADC_CHANNEL_18)
-#define ADC_CHANNEL_TEMPSENSOR  ((uint32_t)(ADC_CHANNEL_18 | 0x10000000U))
-#include "stm32f7xx_hal_adc.h"
+#define TFT_DEMO 1
+#define NRF_DEMO 1
+#define EEPROM_DEMO 1
+#define FM_RADIO_DEMO 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -85,7 +88,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -95,11 +97,24 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  uint8_t nrf1_tx[33];
-  uint8_t nrf1_rx[33] = {0};
-  uint8_t nrf2_tx[33];
-  uint8_t nrf2_rx[33] = {0};
 
+	/* User input structure*/
+	cli_t cli = {0};
+#if TFT_DEMO
+  uint32_t tft_Cursor = 5;
+  uint32_t tft_Line = 300;
+  char tft_TestStr[]= "I am a demo application for the magiBoard!";
+  RTC_TimeTypeDef tft_Time = {0};
+#endif
+
+#if NRF_DEMO
+  uint8_t nrf_lng1 = 0;
+  uint8_t nrf_lng2 = 0;
+  uint8_t nrf1_tx[33] = {0};
+  uint8_t nrf1_rx[33] = {0};
+  uint8_t nrf2_tx[33] = {0};
+  uint8_t nrf2_rx[33] = {0};
+#endif
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -136,42 +151,69 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
+  /* Initiliaze UART-console input */
+  cli_init();
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+#if TFT_DEMO
+  /* TFT functionality overview*/
+
   reset();
   tft_init(readID());
   fillScreen(BLACK);
 
-  uint32_t cursor = 5;
-  uint32_t line = 300;
-  char str[]= "In UK they drive left,in my country on whats left!";
-  for(int i = 0; i < strlen(str); i++)
+  /* Print a size-16 string - general usage*/
+  for(uint32_t i = 0; i < strlen(tft_TestStr); i++)
   {
-	  cursor += sPrintCalibri16(cursor, line, str[i] - 33, WHITE);
+	  tft_Cursor += sPrintCalibri16(tft_Cursor, tft_Line, tft_TestStr[i] - ASCII_OFFSET, WHITE);
   }
 
-  printMagneto100(POS_0, TEXT_OFFSET, 0);
-  printMagneto100(POS_1, TEXT_OFFSET, 1);
-  printMagneto100(POS_2, TEXT_OFFSET, 2);
-  printMagneto100(POS_3, TEXT_OFFSET, 3);
-  fillCircle(DOT_1Y, DOT_1X, 10, WHITE);
-  fillCircle(DOT_2Y, DOT_2X, 10, WHITE);
+  /* Get time */
+  HAL_RTC_GetTime(&hrtc, &tft_Time, RTC_FORMAT_BIN);
 
-  cursor = 5;
+  /* Print a size-100 numbers - current time usage*/
+  printMagneto100(MAGNETO_100_POS_0, MAGNETO_100_LINE, tft_Time.Hours/10);
+  printMagneto100(MAGNETO_100_POS_1, MAGNETO_100_LINE, tft_Time.Hours%10);
+  printMagnetoComa();
+  printMagneto100(MAGNETO_100_POS_2, MAGNETO_100_LINE, tft_Time.Minutes/10);
+  printMagneto100(MAGNETO_100_POS_3, MAGNETO_100_LINE, tft_Time.Minutes%10);
 
-  cursor += printMagneto40(cursor, 0, '1' - 33);
-  cursor += printMagneto40(cursor, 0, '1' - 33);
-  cursor += printMagneto40(cursor, 0, '.' - 33);
-  cursor += printMagneto40(cursor, 0, '1' - 33);
-  cursor += printMagneto40Degree(cursor, 0);
-  cursor += printMagneto40(cursor, 0, 'C' - 33);
+  /* Print a size-40 text - informal usage (temperature)*/
+  tft_Cursor = MAGNETO_40_START;
+  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, '1' - ASCII_OFFSET);
+  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, '1' - ASCII_OFFSET);
+  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, '.' - ASCII_OFFSET);
+  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, '1' - ASCII_OFFSET);
+  tft_Cursor += printMagneto40Degree(tft_Cursor, MAGNETO_40_LINE_0);
+  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, 'C' - ASCII_OFFSET);
+#endif
 
+#ifdef EEPROM_DEMO
+  /* Read - out some NVM EEPROM stored custom data */
   printf("AudioOut %d\r\n", NVM_GetAudioOutEnable());
   printf("ESP %d\r\n", NVM_GetESPEnable());
   printf("RDA %d\r\n", NVM_GetRDAEnable());
   printf("RDAfrequency %d\r\n", NVM_GetRDAfrequency());
   printf("RDAvolume %d\r\n", NVM_GetRDAvolume());
+#endif
 
-  //ESP_HTTPinit();
+#ifdef WIFI_DEMO
+  /* ESP8226-01 Initialization */
+  ESP_HTTPinit();
+#endif
 
+
+#ifdef FM_RADIO_DEMO
+  /* Initialize RDA5807M */
+  RDA5807mPowerOn();
+  RDA5807mInit(9170, 1);
+  RDA5807mMute(0);
+  /* Enable AUDIO_OUT amplifier */
+  HAL_GPIO_WritePin(AO_PWR_GPIO_Port, AO_PWR_Pin, GPIO_PIN_SET);
+#endif
+
+#ifdef NRF_DEMO
+
+  /* Initialization of both NRF module */
   NRF_powerDown();
   NRF_powerDown_B();
   HAL_Delay(500);
@@ -184,20 +226,12 @@ int main(void)
 
   NRF_configure(true);
   NRF_configure_B(false);
-
-  RDA5807mPowerOn();
-  RDA5807mInit(9170, 1);
-  RDA5807mMute(0);
-
-  cli_init();
-
-  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(AO_PWR_GPIO_Port, AO_PWR_Pin, GPIO_PIN_SET);
-
+#endif
   while(1)
   {
 
-	  cli_t cli = cli_process();
+	  /* Process console users UART input*/
+	  cli = cli_process();
 	  if(cli.pBegin != NULL &&
 			  cli.length != 0 &&
 			  cli.length != CLI_PROCESS_TIMEOUT)
@@ -205,21 +239,32 @@ int main(void)
 		  CmdDispatch(cli.pBegin, cli.length);
 	  }
 
+	  /* Just toggle magicBoard's general purpose LEDS*/
 	  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 	  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
+#ifdef NRF_DEMO
+
+	  /* Generate some payload for both NRFs - use ARM's 1ms tick */
 	  sprintf((char*)nrf1_tx, "%032ld", HAL_GetTick());
 	  sprintf((char*)nrf2_tx, "%032ld", 0x7FFFFFFF - HAL_GetTick());
 
+	  /* Shift payload in the NRFs*/
 	  NRF_setW_TX_PAYLOAD(nrf1_tx, 32);
 	  NRF_set_W_ACK_PAYLOAD_B(0, nrf2_tx, 32);
 
+	  /* Start receive, start transmit */
 	  NRF_CEactivate_B();
 	  NRF_CEactivate();
+
+	  /* Wait long enought for reception and ACK */
 	  HAL_Delay(5);
+
+	  /* Deactivate reception and transmission */
 	  NRF_CEdeactivate_B();
 	  NRF_CEdeactivate();
 
+	  /* Check whether IRQ fired (receive, transmit or error occured)*/
 	  if(NRF_getIRQ())
 	  {
 		  printf("NRF1 IRQ\n");
@@ -232,19 +277,21 @@ int main(void)
 		  HAL_Delay(50);
 	  }
 
-	  uint8_t lng1 = NRF_postProcess(0, nrf1_rx);
-	  uint8_t lng2 = NRF_postProcess_B(0, nrf2_rx);
+	  /* Check receive and transmit states, get potential payload and payload length*/
+	  nrf_lng1 = NRF_postProcess(0, nrf1_rx);
+	  nrf_lng2 = NRF_postProcess_B(0, nrf2_rx);
 
-	  if(lng1 && lng1 != (uint8_t)(-1))
+	  /* Print payloads when available */
+	  if(nrf_lng1 && nrf_lng1 != (uint8_t)(-1))
 	  {
 		  printf("%s\n", nrf1_rx);
 		  HAL_Delay(50);
 	  }
-	  if(lng2 && lng2 != (uint8_t)(-1))
+	  if(nrf_lng2 && nrf_lng2 != (uint8_t)(-1))
 	  {
 		  printf("%s\n", nrf2_rx);
 	  }
-
+#endif
 	  HAL_Delay(100);
   }
 

@@ -35,7 +35,9 @@ extern "C" {
 extern ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN Private defines */
-
+#define ADC_CHANNEL_VREFINT     ((uint32_t)ADC_CHANNEL_17)
+#define ADC_CHANNEL_VBAT        ((uint32_t)ADC_CHANNEL_18)
+#define ADC_CHANNEL_TEMPSENSOR  ((uint32_t)(ADC_CHANNEL_18 | 0x10000000U))
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);

@@ -26,4 +26,6 @@ typedef struct S_FONT_INFO
 	const uint8_t * bitmaps;
 }FONT_INFO;
 
+#define ASCII_OFFSET (uint32_t)(33)
+
 #endif /* FONTDEFS_H_ */
