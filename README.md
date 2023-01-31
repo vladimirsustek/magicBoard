@@ -1,11 +1,11 @@
 <h1>The magicBoard!</h1>
 
 The magicBoard is supposed to multi-purpose embedded device based on the MCU ARM-M7<br> 
-STM32F767ZI, namelly on the development board [STM32 Nucleo-144](https://www.markdownguide.org/basic-syntax)
+STM32F767ZI, namelly on the development board [STM32 Nucleo-144](https://www.st.com/en/evaluation-tools/nucleo-f767zi.html)
 equipped with customized<br>shield to extend Nucleo's functionality.
 
 This project has default structure for STM's [STM32CudeIDE](https://www.st.com/en/development-tools/stm32cubeide.html#:~:text=STM32CubeIDE%20is%20an%20advanced%20C,and%20GDB%20for%20the%20debugging.)
-. Download this free IDE to build the project.
+. Download this free IDE to build the project.<br><br><br>
 <img src="/Docs/magicBoardPhoto.jpg" alt="Demo" title="Demo">
 
 <h2>Intended usage is:</h2>
