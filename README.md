@@ -6,7 +6,9 @@ equipped with customized<br>shield to extend Nucleo's functionality.
 
 This project has default structure for STM's [STM32CudeIDE](https://www.st.com/en/development-tools/stm32cubeide.html#:~:text=STM32CubeIDE%20is%20an%20advanced%20C,and%20GDB%20for%20the%20debugging.)
 . Download this free IDE to build the project.<br><br><br>
+
 <img src="/Docs/magicBoardPhoto.jpg" alt="Demo" title="Demo">
+<img src="/Docs/EaglePreview.PNG" alt="Demo" title="Demo">
 
 <h2>Intended usage is:</h2>
 <ol>
@@ -26,7 +28,7 @@ This project has default structure for STM's [STM32CudeIDE](https://www.st.com/e
 
 <h2>magicBoard shield features:</h2>
 
-For more hardware details see schematics located in the "Docs".
+For more hardware details see [Schematics](/Docs/magicBoard.pdf)
 
 <ol>
   <li><b>MONO AUDIO IN - analog pre-processing of 3.5mm jack signal</b><ul>
