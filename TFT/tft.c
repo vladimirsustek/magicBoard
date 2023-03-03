@@ -46,8 +46,7 @@
 
 /********************************************** NO CHNAGES AFTER THIS ************************************************/
 
-TIM_HandleTypeDef htim2;
-
+#include "tim.h"
 void delay (uint32_t time)
 {
 	htim2.Instance->CNT = 0;

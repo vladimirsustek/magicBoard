@@ -15,6 +15,25 @@
 
 static char httpReqBuff[MAX_HTTP_REQ_SIZE + 1] = {0};
 
+extern const char * atCmd;
+extern const char * atCmd_RST;
+extern const char * atCmd_CWJAP;
+extern const char * atCmd_CWQAP;
+extern const char * atCmd_CWMODE;
+extern const char * atCmd_CIPMUX;
+#if STATIC_IP_AND_NEW_WIFI
+extern const char * atCmd_CWSTAIP;
+#endif
+extern const char * atCmd_CWJAP;
+extern const char * atCmd_CIPSERVER;
+extern const char * atRsp_OK;
+extern const char * atRsp_ready;
+extern const char * atCmd_CIPSEND;
+extern const char * atCmd_CIPCLOSE;
+extern const char * atRsp_WifiGotIp;
+
+extern char *pageIndex;
+
 uint32_t ESP_HTTPinit (void)
 {
 

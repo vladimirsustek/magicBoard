@@ -10,12 +10,13 @@
 
 #include "stdint.h"
 
-char *pageIndex;
+//char *pageIndex;
 
 /*Length of AT+CWJAP= + \r\n */
 #define CWJAP_LNG 9
 #define ATCMD_TERMINATION 2
 
+#ifdef jo
 const char * atCmd ;
 const char * atCmd_RST;
 const char * atCmd_CWJAP;
@@ -32,5 +33,5 @@ const char * atRsp_ready;
 const char * atCmd_CIPSEND;
 const char * atCmd_CIPCLOSE;
 const char * atRsp_WifiGotIp;
-
+#endif
 #endif /* ESP8266_HTTP_DATA_H_ */
