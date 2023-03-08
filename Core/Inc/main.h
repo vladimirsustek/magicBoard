@@ -163,6 +163,7 @@ void Error_Handler(void);
 #define NRF1_PWR_GPIO_Port GPIOB
 #define RDA_PWR_Pin GPIO_PIN_0
 #define RDA_PWR_GPIO_Port GPIOE
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -122,7 +122,7 @@ uint32_t printMagneto40(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
 
 uint32_t eraseMagneto40(uint32_t xOffset, uint32_t yOffset, uint32_t idx)
 {
-	return sPrintMagneto60(xOffset, xOffset, idx, ERASE_COLOR);
+	return sPrintMagneto60(xOffset, yOffset, idx, ERASE_COLOR);
 }
 
 uint32_t printMagneto40Degree(uint32_t xOffset, uint32_t yOffset)

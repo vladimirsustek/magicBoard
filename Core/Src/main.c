@@ -17,7 +17,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <magneto100.h>
 #include "main.h"
 #include "adc.h"
 #include "dac.h"
@@ -34,6 +33,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "nrf24l01p_driver.h"
 #include "nrf24l01p_driver_B.h"
@@ -55,7 +55,11 @@
 #include "print_magneto.h"
 #include "calibri16.h"
 
+#include "measurements.h"
+
 #include "stm32f7xx_hal_adc.h"
+
+#include "flash_nvm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,9 +70,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define TFT_DEMO 1
-#define NRF_DEMO 1
-#define EEPROM_DEMO 1
-#define FM_RADIO_DEMO 1
+#define NRF_DEMO 0
+#define EEPROM_DEMO 0
+#define FM_RADIO_DEMO 0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -103,7 +107,10 @@ int main(void)
 #if TFT_DEMO
   uint32_t tft_Cursor = 5;
   uint32_t tft_Line = 300;
-  char tft_TestStr[]= "I am a demo application for the magiBoard!";
+  uint32_t tft_ID_line = 0;
+  uint32_t tft_ID_cursor = 480 - 480/3;
+  char tft_IDStr[32];
+  char tft_TestStr[]= "I am a demo application for the magiBoard! (clock)";
   RTC_TimeTypeDef tft_Time = {0};
 #endif
 
@@ -134,13 +141,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ETH_Init();
+  MX_DMA_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_USB_Init();
   MX_DAC_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
-  MX_DMA_Init();
+  MX_ETH_Init();
   MX_UART7_Init();
   MX_TIM2_Init();
   MX_I2C2_Init();
@@ -149,7 +156,11 @@ int main(void)
   MX_TIM9_Init();
   MX_RTC_Init();
   MX_TIM4_Init();
+  MX_TIM14_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
+
+  //measurements_open();
 
   /* Initiliaze UART-console input */
   cli_init();
@@ -165,6 +176,13 @@ int main(void)
   for(uint32_t i = 0; i < strlen(tft_TestStr); i++)
   {
 	  tft_Cursor += sPrintCalibri16(tft_Cursor, tft_Line, tft_TestStr[i] - ASCII_OFFSET, WHITE);
+  }
+
+  /* Print a the TFT ID*/
+  sprintf(tft_IDStr, "LCD ID: 0x%04x", readID());
+  for(uint32_t i = 0; i < strlen(tft_IDStr); i++)
+  {
+	  tft_ID_cursor += sPrintCalibri16(tft_ID_cursor, tft_ID_line, tft_IDStr[i] - ASCII_OFFSET, WHITE);
   }
 
   /* Get time */
@@ -187,7 +205,7 @@ int main(void)
   tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, 'C' - ASCII_OFFSET);
 #endif
 
-#ifdef EEPROM_DEMO
+#if EEPROM_DEMO
   /* Read - out some NVM EEPROM stored custom data */
   printf("AudioOut %d\r\n", NVM_GetAudioOutEnable());
   printf("ESP %d\r\n", NVM_GetESPEnable());
@@ -202,7 +220,7 @@ int main(void)
 #endif
 
 
-#ifdef FM_RADIO_DEMO
+#if FM_RADIO_DEMO
   /* Initialize RDA5807M */
   RDA5807mPowerOn();
   RDA5807mInit(9170, 1);
@@ -211,7 +229,7 @@ int main(void)
   HAL_GPIO_WritePin(AO_PWR_GPIO_Port, AO_PWR_Pin, GPIO_PIN_SET);
 #endif
 
-#ifdef NRF_DEMO
+#if NRF_DEMO
 
   /* Initialization of both NRF module */
   NRF_powerDown();
@@ -230,6 +248,12 @@ int main(void)
   while(1)
   {
 
+	  int32_t ch12, temp;
+	  if(measurement_get(&ch12, &temp))
+	  {
+		  printf("CH12 = %ld\nTEMP = %ld\n\n", ch12, temp);
+	  }
+
 	  /* Process console users UART input*/
 	  cli = cli_process();
 	  if(cli.pBegin != NULL &&
@@ -243,7 +267,7 @@ int main(void)
 	  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 	  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
-#ifdef NRF_DEMO
+#if NRF_DEMO
 
 	  /* Generate some payload for both NRFs - use ARM's 1ms tick */
 	  sprintf((char*)nrf1_tx, "%032ld", HAL_GetTick());
@@ -321,10 +345,12 @@ void SystemClock_Config(void)
   /** Configure LSE Drive Capability
   */
   HAL_PWR_EnableBkUpAccess();
+
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -342,12 +368,14 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Activate the Over-Drive mode
   */
   if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -364,6 +392,12 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM13)
+	{
+	}
+}
 /* USER CODE END 4 */
 
 /**
@@ -397,4 +431,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-

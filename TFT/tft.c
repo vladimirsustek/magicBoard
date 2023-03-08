@@ -37,19 +37,22 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "tft.h"
-#include "stm32f7xx_hal.h"
 #include "string.h"
 #include "functions.h"
 #include "user_setting.h"
 #include "stdlib.h"
 
 
-/********************************************** NO CHNAGES AFTER THIS ************************************************/
+/********************************************** PORTING SECTION ************************************************/
 
+/* Platform changes */
 #include "tim.h"
+#include "stm32f7xx_hal.h"
+
+/* us blocking timer */
 void delay (uint32_t time)
 {
-	htim2.Instance->CNT = 0;
+	htim14.Instance->CNT = 0;
 	while(htim2.Instance->CNT == time);
 
 #if NOP_AUX_IMPLEMENTATION
@@ -469,7 +472,7 @@ void tft_init(uint16_t ID)
     int16_t table_size;
     _lcd_xor = 0;
 
-    HAL_TIM_Base_Start(&htim2);
+    HAL_TIM_Base_Start(&htim14);
 
     switch (_lcd_ID = ID) {
 /*
