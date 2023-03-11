@@ -53,8 +53,6 @@
 
 #include "print_magneto.h"
 #include "calibri16.h"
-
-#include "stm32f7xx_hal_adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,11 +63,11 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define WIFI_DEMO 0
-#define TFT_DEMO 1
-#define NRF_DEMO 1
-#define EEPROM_DEMO 1
-#define FM_RADIO_DEMO 1
-#define INT_ADC_DEMO 1
+#define TFT_DEMO 0
+#define NRF_DEMO 0
+#define EEPROM_DEMO 0
+#define FM_RADIO_DEMO 0
+#define INT_ADC_DEMO 0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -206,7 +204,6 @@ int main(void)
   ESP_HTTPinit();
 #endif
 
-
 #if FM_RADIO_DEMO
   /* Initialize RDA5807M */
   RDA5807mPowerOn();
@@ -216,7 +213,7 @@ int main(void)
   HAL_GPIO_WritePin(AO_PWR_GPIO_Port, AO_PWR_Pin, GPIO_PIN_SET);
 #endif
 
-#ifdef NRF_DEMO
+#if NRF_DEMO
 
   /* Initialization of both NRF module */
   NRF_powerDown();
@@ -234,7 +231,6 @@ int main(void)
 #endif
   while(1)
   {
-
 	  int32_t ch12 = 0, temp = 0;
 	  //if(measurement_get(&ch12, &temp))
 	  {
