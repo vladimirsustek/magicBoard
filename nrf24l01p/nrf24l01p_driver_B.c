@@ -1087,7 +1087,7 @@ uint32_t NRF_powerCycle_B(void (*msDelay)(uint32_t))
 		  attempts++;
 		  msDelay(100);
 
-	  } while ((status != 0x0E) | (attempts <= MAX_DEVICE_POWER_CYCLE_ATTEMPTS));
+	  } while ((status != 0x0E) || (attempts <= MAX_DEVICE_POWER_CYCLE_ATTEMPTS));
 
 
 	  return (uint32_t)status;
