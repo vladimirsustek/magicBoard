@@ -9,28 +9,25 @@
 #define ESP8266_HTTP_DATA_H_
 
 #include "stdint.h"
-
-char *pageIndex;
-
 /*Length of AT+CWJAP= + \r\n */
 #define CWJAP_LNG 9
 #define ATCMD_TERMINATION 2
 
-const char * atCmd ;
-const char * atCmd_RST;
-const char * atCmd_CWJAP;
-const char * atCmd_CWQAP;
-const char * atCmd_CWMODE;
-const char * atCmd_CIPMUX;
+extern const char * atCmd;
+extern const char * atCmd_RST;
+extern const char * atCmd_CWJAP;
+extern const char * atCmd_CWQAP;
+extern const char * atCmd_CWMODE;
+extern const char * atCmd_CIPMUX;
 #if STATIC_IP_AND_NEW_WIFI
 const char * atCmd_CWSTAIP;
 #endif
-const char * atCmd_CWJAP;
-const char * atCmd_CIPSERVER;
-const char * atRsp_OK;
-const char * atRsp_ready;
-const char * atCmd_CIPSEND;
-const char * atCmd_CIPCLOSE;
-const char * atRsp_WifiGotIp;
+extern const char * atCmd_CWJAP;
+extern const char * atCmd_CIPSERVER;
+extern const char * atRsp_OK;
+extern const char * atRsp_ready;
+extern const char * atCmd_CIPSEND;
+extern const char * atCmd_CIPCLOSE;
+extern const char * atRsp_WifiGotIp;
 
 #endif /* ESP8266_HTTP_DATA_H_ */

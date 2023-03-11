@@ -19,6 +19,28 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "eth.h"
+#include "string.h"
+
+#if defined ( __ICCARM__ ) /*!< IAR Compiler */
+
+#pragma location=0x2007c000
+ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptors */
+#pragma location=0x2007c0a0
+ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptors */
+
+#elif defined ( __CC_ARM )  /* MDK ARM Compiler */
+
+__attribute__((at(0x2007c000))) ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptors */
+__attribute__((at(0x2007c0a0))) ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptors */
+
+#elif defined ( __GNUC__ ) /* GNU Compiler */
+
+ETH_DMADescTypeDef DMARxDscrTab[ETH_RX_DESC_CNT] __attribute__((section(".RxDecripSection"))); /* Ethernet Rx DMA Descriptors */
+ETH_DMADescTypeDef DMATxDscrTab[ETH_TX_DESC_CNT] __attribute__((section(".TxDecripSection")));   /* Ethernet Tx DMA Descriptors */
+
+#endif
+
+ETH_TxPacketConfig TxConfig;
 
 /* USER CODE BEGIN 0 */
 
@@ -40,10 +62,6 @@ void MX_ETH_Init(void)
 
   /* USER CODE END ETH_Init 1 */
   heth.Instance = ETH;
-  heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
-  heth.Init.Speed = ETH_SPEED_100M;
-  heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
-  heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
   MACAddr[0] = 0x00;
   MACAddr[1] = 0x80;
   MACAddr[2] = 0xE1;
@@ -51,9 +69,10 @@ void MX_ETH_Init(void)
   MACAddr[4] = 0x00;
   MACAddr[5] = 0x00;
   heth.Init.MACAddr = &MACAddr[0];
-  heth.Init.RxMode = ETH_RXPOLLING_MODE;
-  heth.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
-  heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
+  heth.Init.MediaInterface = HAL_ETH_RMII_MODE;
+  heth.Init.TxDesc = DMATxDscrTab;
+  heth.Init.RxDesc = DMARxDscrTab;
+  heth.Init.RxBuffLen = 1524;
 
   /* USER CODE BEGIN MACADDRESS */
 
@@ -63,6 +82,11 @@ void MX_ETH_Init(void)
   {
     Error_Handler();
   }
+
+  memset(&TxConfig, 0 , sizeof(ETH_TxPacketConfig));
+  TxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CSUM | ETH_TX_PACKETS_FEATURES_CRCPAD;
+  TxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
+  TxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
   /* USER CODE BEGIN ETH_Init 2 */
 
   /* USER CODE END ETH_Init 2 */

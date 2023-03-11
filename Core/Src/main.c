@@ -17,7 +17,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <magneto100.h>
 #include "main.h"
 #include "adc.h"
 #include "dac.h"
@@ -65,10 +64,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define WIFI_DEMO 0
 #define TFT_DEMO 1
 #define NRF_DEMO 1
 #define EEPROM_DEMO 1
 #define FM_RADIO_DEMO 1
+#define INT_ADC_DEMO 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -134,13 +135,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ETH_Init();
+  MX_DMA_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_USB_Init();
   MX_DAC_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
-  MX_DMA_Init();
+  MX_ETH_Init();
   MX_UART7_Init();
   MX_TIM2_Init();
   MX_I2C2_Init();
@@ -154,6 +155,10 @@ int main(void)
   /* Initiliaze UART-console input */
   cli_init();
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+
+#if INT_ADC_DEMO
+  //measurements_open();
+#endif
 #if TFT_DEMO
   /* TFT functionality overview*/
 
@@ -187,7 +192,7 @@ int main(void)
   tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, 'C' - ASCII_OFFSET);
 #endif
 
-#ifdef EEPROM_DEMO
+#if EEPROM_DEMO
   /* Read - out some NVM EEPROM stored custom data */
   printf("AudioOut %d\r\n", NVM_GetAudioOutEnable());
   printf("ESP %d\r\n", NVM_GetESPEnable());
@@ -196,13 +201,13 @@ int main(void)
   printf("RDAvolume %d\r\n", NVM_GetRDAvolume());
 #endif
 
-#ifdef WIFI_DEMO
+#if WIFI_DEMO
   /* ESP8226-01 Initialization */
   ESP_HTTPinit();
 #endif
 
 
-#ifdef FM_RADIO_DEMO
+#if FM_RADIO_DEMO
   /* Initialize RDA5807M */
   RDA5807mPowerOn();
   RDA5807mInit(9170, 1);
@@ -230,6 +235,11 @@ int main(void)
   while(1)
   {
 
+	  int32_t ch12 = 0, temp = 0;
+	  //if(measurement_get(&ch12, &temp))
+	  {
+		  printf("ch12 %ld\ntemp %ld\r\n", ch12, temp);
+	  }
 	  /* Process console users UART input*/
 	  cli = cli_process();
 	  if(cli.pBegin != NULL &&
@@ -243,7 +253,7 @@ int main(void)
 	  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 	  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
-#ifdef NRF_DEMO
+#if NRF_DEMO
 
 	  /* Generate some payload for both NRFs - use ARM's 1ms tick */
 	  sprintf((char*)nrf1_tx, "%032ld", HAL_GetTick());
@@ -321,10 +331,12 @@ void SystemClock_Config(void)
   /** Configure LSE Drive Capability
   */
   HAL_PWR_EnableBkUpAccess();
+
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -342,12 +354,14 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Activate the Over-Drive mode
   */
   if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -397,4 +411,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-

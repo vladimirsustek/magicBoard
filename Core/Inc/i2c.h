@@ -33,6 +33,7 @@ extern "C" {
 /* USER CODE END Includes */
 
 extern I2C_HandleTypeDef hi2c2;
+
 extern I2C_HandleTypeDef hi2c4;
 
 /* USER CODE BEGIN Private defines */

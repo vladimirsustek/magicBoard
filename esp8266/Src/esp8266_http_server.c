@@ -11,6 +11,8 @@
 #include "nvm_app.h"
 #include "rtc.h"
 
+extern char *pageIndex;
+
 #define STATIC_IP_AND_NEW_WIFI 0
 
 static char httpReqBuff[MAX_HTTP_REQ_SIZE + 1] = {0};
