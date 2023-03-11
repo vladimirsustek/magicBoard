@@ -53,8 +53,6 @@
 
 #include "print_magneto.h"
 #include "calibri16.h"
-
-#include "stm32f7xx_hal_adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
