@@ -10,6 +10,8 @@
 
 #include "eeprom_25aa1024.h"
 
+/* For the RTC_TimeTypeDef */
+#include "stm32f7xx_hal_rtc.h"
 
 #define EEPROM_WIFI_ADR_0		(uint32_t)(0x01FD00)
 #define EEPROM_WIFI_ADR_1		(uint32_t)(0x01FD80)
@@ -23,6 +25,8 @@
 
 /* 4-bytes for sys_state storage */
 #define EEPROM_SYS_STATE_ADR	(uint32_t)(0x01FF00)
+
+#define EEPROM_HARDTIME_ADR		(uint32_t)(0x01FF04)
 
 typedef enum {
 	WIFI_ADR_0 = EEPROM_WIFI_ADR_0,
@@ -45,7 +49,8 @@ typedef enum {
  * 0x01FD80: EEPROM_WIFI_ADR_1       128 bytes to next address
  * 0x01FE00: EEPROM_WIFI_ADR_2       128 bytes to next address
  * 0x01FE80: EEPROM_WIFI_ADR_3       128 bytes to next address
- * 0x01FF00: EEPROM_SYS_STATE_ADR    255 bytes to last EEPROM address
+ * 0x01FF00: EEPROM_SYS_STATE_ADR      4 bytes to next address
+ * 0x01FF04: EEPROM_HARDCODED_TIME   252 bytes to next address
  *
  * 767 bytes occupied
  */
@@ -88,4 +93,6 @@ uint8_t NVM_GetAudioOutEnable();
 uint8_t NVM_GetRDAvolume();
 uint16_t NVM_GetRDAfrequency();
 
+void NVM_SetHardcodeTime(RTC_TimeTypeDef* time);
+void NVM_GetHardcodeTime(RTC_TimeTypeDef* time);
 #endif /* INC_NVM_APP_H_ */

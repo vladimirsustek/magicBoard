@@ -319,3 +319,14 @@ uint16_t CmdNVMReadBytes(const uint8_t* const cmd, const uint16_t lng)
 
 	return subResult;
 }
+
+void NVM_SetHardcodeTime(RTC_TimeTypeDef* time)
+{
+	EEPROM_WriteData(EEPROM_HARDTIME_ADR, (uint8_t*)time,
+			sizeof(RTC_TimeTypeDef));
+}
+void NVM_GetHardcodeTime(RTC_TimeTypeDef* time)
+{
+	EEPROM_ReadData(EEPROM_HARDTIME_ADR, (uint8_t*)time,
+			sizeof(RTC_TimeTypeDef));
+}

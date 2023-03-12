@@ -42,6 +42,7 @@
 #include "cli.h"
 
 #include "rtc.h"
+#include "nvm_app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,6 +97,8 @@ const osThreadAttr_t uartCLI_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for wirelessData */
+
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 /* Definitions for wirelessData */
@@ -137,8 +140,6 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* creation of wirelessData */
-  wirelessDataHandle = osMessageQueueNew (16, sizeof(uint16_t), &wirelessData_attributes);
-
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
@@ -180,8 +181,10 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(100);
-    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+    osDelay(50);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+    osDelay(950);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -266,19 +269,26 @@ void Start_displayTask(void *argument)
   /* USER CODE BEGIN Start_displayTask */
 	  RTC_TimeTypeDef previous = {0};
 	  RTC_TimeTypeDef current = {0};
+	  RTC_DateTypeDef dummy = {0};
 	  osStatus_t msg_state;
 	  payload_t data;
 	  uint32_t prev_vdda;
 	  uint32_t tft_Cursor;
 	  char str_vdda[16];
 
-	  previous.Hours = 11;
-	  previous.Minutes = 11;
-
 	  printMagnetoComa();
+
+	  NVM_GetHardcodeTime(&current);
+
+	  HAL_RTC_SetDate(&hrtc, &dummy, RTC_FORMAT_BIN);
+	  HAL_RTC_SetTime(&hrtc, &current, RTC_FORMAT_BIN);
+
   /* Infinite loop */
   for(;;)
   {
+	  /* It's a STM HAL bug ... without the reading date
+	   * the read time does not work */
+	  HAL_RTC_GetDate(&hrtc, &dummy, RTC_FORMAT_BIN);
 	  HAL_RTC_GetTime(&hrtc, &current, RTC_FORMAT_BIN);
 
 	  if(memcmp(&current, &previous, sizeof(RTC_TimeTypeDef)))

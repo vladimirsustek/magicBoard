@@ -209,6 +209,15 @@ int main(void)
   DEBUG_PRINT("RDA %d\r\n", NVM_GetRDAEnable());
   DEBUG_PRINT("RDAfrequency %d\r\n", NVM_GetRDAfrequency());
   DEBUG_PRINT("RDAvolume %d\r\n", NVM_GetRDAvolume());
+
+  RTC_TimeTypeDef time;
+
+  time.Hours = 23;
+  time.Minutes = 10;
+  time.Seconds = 0;
+
+  NVM_SetHardcodeTime(&time);
+
 #endif
 
 #if WIFI_DEMO
