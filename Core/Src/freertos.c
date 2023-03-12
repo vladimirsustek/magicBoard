@@ -96,14 +96,14 @@ const osThreadAttr_t uartCLI_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN FunctionPrototypes */
 /* Definitions for wirelessData */
 osMessageQueueId_t wirelessDataHandle;
 const osMessageQueueAttr_t wirelessData_attributes = {
   .name = "wirelessData"
 };
 
-/* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN FunctionPrototypes */
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -137,11 +137,11 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* creation of wirelessData */
-  wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
+  wirelessDataHandle = osMessageQueueNew (16, sizeof(uint16_t), &wirelessData_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  //wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
+  wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -182,8 +182,6 @@ void StartDefaultTask(void *argument)
   {
     osDelay(100);
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -199,7 +197,7 @@ void Start_nrfCOM(void *argument)
 {
   /* USER CODE BEGIN Start_nrfCOM */
 	payload_t payload = {0};
-	bool break_flag = false;
+	bool synced = false;
 	uint8_t status = 0;
   /* Infinite loop */
   for(;;)
@@ -210,8 +208,6 @@ void Start_nrfCOM(void *argument)
 	  osDelay(105);
 
 	  DEBUG_PRINT("NRF STATUS 1 attempt: 0x%02x\n", NRF_getSTATUS());
-	  DEBUG_PRINT("NRF STATUS 2 attempt: 0x%02x\n", NRF_getSTATUS());
-	  DEBUG_PRINT("NRF STATUS 3 attempt: 0x%02x\n", NRF_getSTATUS());
 
 	  NRF_configure(false);
 
@@ -220,31 +216,37 @@ void Start_nrfCOM(void *argument)
 	  for(;;)
 	  {
 
+		  uint32_t start = osKernelGetTickCount();
 		  NRF_CEactivate();
-		  osDelay(10);
+		  do {
+			  osDelay(2);
+		  } while(osKernelGetTickCount() < start + 4000 && !NRF_getIRQ());
+
 		  NRF_CEdeactivate();
 
 		  status = NRF_getSTATUS();
 
 		  if(status & (1 << RX_DR))
 		  {
-
+			  synced = true;
 			  NRF_getR_RX_PAYLOAD((uint8_t*)&payload, sizeof(payload_t));
 			  osMessageQueuePut(wirelessDataHandle, (void*)&payload, 0, 1);
-/*
-			  DEBUG_PRINT("VDDA %ld\n"
-					  "CH0 %ld\n"
-					  "SENS %ld\n"
-					  "-----------\r\n",
-					  payload.vdda,
-					  payload.temp_ntc,
-					  payload.temp_sens);
-*/
 			  NRF_setSTATUS(1 << RX_DR);
 			  NRF_set_W_ACK_PAYLOAD(0, (uint8_t*)"DummyACK", strlen("DummyACK"));
 		  }
-		  if(break_flag){
-			  break;
+		  else
+		  {
+			  synced = false;
+		  }
+
+		  if(synced){
+			  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+			  osDelay(8000);
+		  }
+		  else
+		  {
+			  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+			  osDelay(1);
 		  }
 	  }
     osDelay(1);
@@ -263,6 +265,7 @@ void Start_displayTask(void *argument)
 {
   /* USER CODE BEGIN Start_displayTask */
 	  RTC_TimeTypeDef previous = {0};
+	  RTC_TimeTypeDef current = {0};
 	  osStatus_t msg_state;
 	  payload_t data;
 	  uint32_t prev_vdda;
@@ -276,8 +279,6 @@ void Start_displayTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  RTC_TimeTypeDef current = {0};
-
 	  HAL_RTC_GetTime(&hrtc, &current, RTC_FORMAT_BIN);
 
 	  if(memcmp(&current, &previous, sizeof(RTC_TimeTypeDef)))
@@ -288,26 +289,22 @@ void Start_displayTask(void *argument)
 			  eraseMagneto100(MAGNETO_100_POS_0, MAGNETO_100_LINE, previous.Hours/10);
 			  printMagneto100(MAGNETO_100_POS_0, MAGNETO_100_LINE, current.Hours/10);
 		  }
-		  osDelay(10);
 		  if(previous.Hours%10 != current.Hours%10)
 		  {
 			  eraseMagneto100(MAGNETO_100_POS_1, MAGNETO_100_LINE, previous.Hours%10);
 			  printMagneto100(MAGNETO_100_POS_1, MAGNETO_100_LINE, current.Hours%10);
 		  }
-		  osDelay(10);
 		  if(previous.Minutes/10 != current.Minutes/10)
 		  {
 			  eraseMagneto100(MAGNETO_100_POS_2, MAGNETO_100_LINE, previous.Minutes/10);
 			  printMagneto100(MAGNETO_100_POS_2, MAGNETO_100_LINE, current.Minutes/10);
 		  }
-		  osDelay(10);
 		  if(previous.Minutes%10 != current.Minutes%10)
 		  {
 			  eraseMagneto100(MAGNETO_100_POS_3, MAGNETO_100_LINE, previous.Minutes%10);
 			  printMagneto100(MAGNETO_100_POS_3, MAGNETO_100_LINE, current.Minutes%10);
 		  }
 		  memcpy(&previous, &current, sizeof(RTC_TimeTypeDef));
-		  osDelay(10);
 	  }
 
 	  msg_state = osMessageQueueGet(wirelessDataHandle, (void*)&data, 0, 1);
@@ -316,7 +313,8 @@ void Start_displayTask(void *argument)
 	  {
 		  DEBUG_PRINT("temp_ntc %lu\n"
 				  "temp_sens %lu\n"
-				  "vdda %lu\n",
+				  "vdda %lu\n"
+				  "---------------\r\n",
 				  data.temp_ntc,
 				  data.temp_sens,
 				  data.vdda);
@@ -341,8 +339,6 @@ void Start_displayTask(void *argument)
 
 			  prev_vdda = data.vdda;
 		  }
-
-
 	  }
 
 	  osDelay(1000);
