@@ -195,11 +195,11 @@ int main(void)
 
 #if EEPROM_DEMO
   /* Read - out some NVM EEPROM stored custom data */
-  printf("AudioOut %d\r\n", NVM_GetAudioOutEnable());
-  printf("ESP %d\r\n", NVM_GetESPEnable());
-  printf("RDA %d\r\n", NVM_GetRDAEnable());
-  printf("RDAfrequency %d\r\n", NVM_GetRDAfrequency());
-  printf("RDAvolume %d\r\n", NVM_GetRDAvolume());
+  DEBUG_PRINT("AudioOut %d\r\n", NVM_GetAudioOutEnable());
+  DEBUG_PRINT("ESP %d\r\n", NVM_GetESPEnable());
+  DEBUG_PRINT("RDA %d\r\n", NVM_GetRDAEnable());
+  DEBUG_PRINT("RDAfrequency %d\r\n", NVM_GetRDAfrequency());
+  DEBUG_PRINT("RDAvolume %d\r\n", NVM_GetRDAvolume());
 #endif
 
 #if WIFI_DEMO
@@ -226,8 +226,8 @@ int main(void)
   NRF_powerUp_B();
   HAL_Delay(500);
 
-  printf("NRF1 STATUS: 0x%02lx\n", NRF_powerCycle(HAL_Delay));
-  printf("NRF2 STATUS: 0x%02lx\n", NRF_powerCycle_B(HAL_Delay));
+  DEBUG_PRINT("NRF1 STATUS: 0x%02lx\n", NRF_powerCycle(HAL_Delay));
+  DEBUG_PRINT("NRF2 STATUS: 0x%02lx\n", NRF_powerCycle_B(HAL_Delay));
 
   NRF_configure(true);
   NRF_configure_B(false);
@@ -237,7 +237,7 @@ int main(void)
 	  int32_t ch12 = 0, temp = 0;
 	  //if(measurement_get(&ch12, &temp))
 	  {
-		  printf("ch12 %ld\ntemp %ld\r\n", ch12, temp);
+		  DEBUG_PRINT("ch12 %ld\ntemp %ld\r\n", ch12, temp);
 	  }
 	  /* Process console users UART input*/
 	  cli = cli_process();
@@ -276,13 +276,13 @@ int main(void)
 	  /* Check whether IRQ fired (receive, transmit or error occured)*/
 	  if(NRF_getIRQ())
 	  {
-		  printf("NRF1 IRQ\n");
+		  DEBUG_PRINT("NRF1 IRQ\n");
 		  HAL_Delay(50);
 	  }
 
 	  if(NRF_getIRQ_B())
 	  {
-		  printf("NRF2 IRQ\n");
+		  DEBUG_PRINT("NRF2 IRQ\n");
 		  HAL_Delay(50);
 	  }
 
@@ -293,12 +293,12 @@ int main(void)
 	  /* Print payloads when available */
 	  if(nrf_lng1 && nrf_lng1 != (uint8_t)(-1))
 	  {
-		  printf("%s\n", nrf1_rx);
+		  DEBUG_PRINT("%s\n", nrf1_rx);
 		  HAL_Delay(50);
 	  }
 	  if(nrf_lng2 && nrf_lng2 != (uint8_t)(-1))
 	  {
-		  printf("%s\n", nrf2_rx);
+		  DEBUG_PRINT("%s\n", nrf2_rx);
 	  }
 #endif
 	  HAL_Delay(100);

@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "cli.h"
 #include "nrf24l01p_defines.h"
 #include "nrf24l01p_driver.h"
 /* USER CODE END Includes */
@@ -160,13 +161,13 @@ void Start_nrfCOM(void *argument)
   for(;;)
   {
 	  NRF_powerDown();
-	  osDelay(500);
+	  osDelay(105);
 	  NRF_powerUp();
-	  osDelay(500);
+	  osDelay(105);
 
-	  printf("NRF STATUS 1 attempt: 0x%02x\n", NRF_getSTATUS());
-	  printf("NRF STATUS 2 attempt: 0x%02x\n", NRF_getSTATUS());
-	  printf("NRF STATUS 3 attempt: 0x%02x\n", NRF_getSTATUS());
+	  DEBUG_PRINT("NRF STATUS 1 attempt: 0x%02x\n", NRF_getSTATUS());
+	  DEBUG_PRINT("NRF STATUS 2 attempt: 0x%02x\n", NRF_getSTATUS());
+	  DEBUG_PRINT("NRF STATUS 3 attempt: 0x%02x\n", NRF_getSTATUS());
 
 	  NRF_configure(false);
 
@@ -183,7 +184,7 @@ void Start_nrfCOM(void *argument)
 		  if(status & (1 << RX_DR))
 		  {
 			  NRF_getR_RX_PAYLOAD((uint8_t*)&payload, NRF_getR_RX_PL_WID());
-			  printf("VDDA %ld\n"
+			  DEBUG_PRINT("VDDA %ld\n"
 					  "CH0 %ld\n"
 					  "SENS %ld\n"
 					  "-----------\r\n",
