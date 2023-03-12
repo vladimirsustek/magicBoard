@@ -155,6 +155,11 @@ int main(void)
 
   /* Initiliaze UART-console input */
   cli_init();
+
+  /* Initiliaze LCD */
+  reset();
+  tft_init(readID());
+  fillScreen(BLACK);
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
 
 #if INT_ADC_DEMO

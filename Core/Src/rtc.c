@@ -21,7 +21,7 @@
 #include "rtc.h"
 
 /* USER CODE BEGIN 0 */
-
+RTC_HandleTypeDef hrtc;
 /* USER CODE END 0 */
 
 RTC_HandleTypeDef hrtc;

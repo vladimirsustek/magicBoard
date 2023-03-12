@@ -32,6 +32,16 @@
 #include "cli.h"
 #include "nrf24l01p_defines.h"
 #include "nrf24l01p_driver.h"
+
+#include "tft.h"
+#include "fonts.h"
+#include "functions.h"
+#include "print_magneto.h"
+#include "calibri16.h"
+
+#include "cli.h"
+
+#include "rtc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,17 +79,37 @@ const osThreadAttr_t defaultTask_attributes = {
 osThreadId_t nrfCOMHandle;
 const osThreadAttr_t nrfCOM_attributes = {
   .name = "nrfCOM",
-  .stack_size = 128 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for displayTask */
+osThreadId_t displayTaskHandle;
+const osThreadAttr_t displayTask_attributes = {
+  .name = "displayTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for uartCLI */
+osThreadId_t uartCLIHandle;
+const osThreadAttr_t uartCLI_attributes = {
+  .name = "uartCLI",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for wirelessData */
+osMessageQueueId_t wirelessDataHandle;
+const osMessageQueueAttr_t wirelessData_attributes = {
+  .name = "wirelessData"
 };
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
 void Start_nrfCOM(void *argument);
+void Start_displayTask(void *argument);
+void Start_uartCLI(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -105,8 +135,13 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of wirelessData */
+  wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+  //wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -115,6 +150,12 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of nrfCOM */
   nrfCOMHandle = osThreadNew(Start_nrfCOM, NULL, &nrfCOM_attributes);
+
+  /* creation of displayTask */
+  displayTaskHandle = osThreadNew(Start_displayTask, NULL, &displayTask_attributes);
+
+  /* creation of uartCLI */
+  uartCLIHandle = osThreadNew(Start_uartCLI, NULL, &uartCLI_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -141,6 +182,8 @@ void StartDefaultTask(void *argument)
   {
     osDelay(100);
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -157,6 +200,7 @@ void Start_nrfCOM(void *argument)
   /* USER CODE BEGIN Start_nrfCOM */
 	payload_t payload = {0};
 	bool break_flag = false;
+	uint8_t status = 0;
   /* Infinite loop */
   for(;;)
   {
@@ -177,13 +221,17 @@ void Start_nrfCOM(void *argument)
 	  {
 
 		  NRF_CEactivate();
-		  osDelay(1000);
+		  osDelay(10);
 		  NRF_CEdeactivate();
-		  uint8_t status = NRF_getSTATUS();
+
+		  status = NRF_getSTATUS();
 
 		  if(status & (1 << RX_DR))
 		  {
-			  NRF_getR_RX_PAYLOAD((uint8_t*)&payload, NRF_getR_RX_PL_WID());
+
+			  NRF_getR_RX_PAYLOAD((uint8_t*)&payload, sizeof(payload_t));
+			  osMessageQueuePut(wirelessDataHandle, (void*)&payload, 0, 1);
+/*
 			  DEBUG_PRINT("VDDA %ld\n"
 					  "CH0 %ld\n"
 					  "SENS %ld\n"
@@ -191,6 +239,7 @@ void Start_nrfCOM(void *argument)
 					  payload.vdda,
 					  payload.temp_ntc,
 					  payload.temp_sens);
+*/
 			  NRF_setSTATUS(1 << RX_DR);
 			  NRF_set_W_ACK_PAYLOAD(0, (uint8_t*)"DummyACK", strlen("DummyACK"));
 		  }
@@ -201,6 +250,122 @@ void Start_nrfCOM(void *argument)
     osDelay(1);
   }
   /* USER CODE END Start_nrfCOM */
+}
+
+/* USER CODE BEGIN Header_Start_displayTask */
+/**
+* @brief Function implementing the displayTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Start_displayTask */
+void Start_displayTask(void *argument)
+{
+  /* USER CODE BEGIN Start_displayTask */
+	  RTC_TimeTypeDef previous = {0};
+	  osStatus_t msg_state;
+	  payload_t data;
+	  uint32_t prev_vdda;
+	  uint32_t tft_Cursor;
+	  char str_vdda[16];
+
+	  previous.Hours = 11;
+	  previous.Minutes = 11;
+
+	  printMagnetoComa();
+  /* Infinite loop */
+  for(;;)
+  {
+	  RTC_TimeTypeDef current = {0};
+
+	  HAL_RTC_GetTime(&hrtc, &current, RTC_FORMAT_BIN);
+
+	  if(memcmp(&current, &previous, sizeof(RTC_TimeTypeDef)))
+	  {
+		  /* Print a size-100 numbers - current time usage*/
+		  if(previous.Hours/10 != current.Hours/10)
+		  {
+			  eraseMagneto100(MAGNETO_100_POS_0, MAGNETO_100_LINE, previous.Hours/10);
+			  printMagneto100(MAGNETO_100_POS_0, MAGNETO_100_LINE, current.Hours/10);
+		  }
+		  osDelay(10);
+		  if(previous.Hours%10 != current.Hours%10)
+		  {
+			  eraseMagneto100(MAGNETO_100_POS_1, MAGNETO_100_LINE, previous.Hours%10);
+			  printMagneto100(MAGNETO_100_POS_1, MAGNETO_100_LINE, current.Hours%10);
+		  }
+		  osDelay(10);
+		  if(previous.Minutes/10 != current.Minutes/10)
+		  {
+			  eraseMagneto100(MAGNETO_100_POS_2, MAGNETO_100_LINE, previous.Minutes/10);
+			  printMagneto100(MAGNETO_100_POS_2, MAGNETO_100_LINE, current.Minutes/10);
+		  }
+		  osDelay(10);
+		  if(previous.Minutes%10 != current.Minutes%10)
+		  {
+			  eraseMagneto100(MAGNETO_100_POS_3, MAGNETO_100_LINE, previous.Minutes%10);
+			  printMagneto100(MAGNETO_100_POS_3, MAGNETO_100_LINE, current.Minutes%10);
+		  }
+		  memcpy(&previous, &current, sizeof(RTC_TimeTypeDef));
+		  osDelay(10);
+	  }
+
+	  msg_state = osMessageQueueGet(wirelessDataHandle, (void*)&data, 0, 1);
+
+	  if(msg_state == osOK)
+	  {
+		  DEBUG_PRINT("temp_ntc %lu\n"
+				  "temp_sens %lu\n"
+				  "vdda %lu\n",
+				  data.temp_ntc,
+				  data.temp_sens,
+				  data.vdda);
+
+		  if(data.vdda != prev_vdda)
+		  {
+			  tft_Cursor = MAGNETO_40_START;
+			  sprintf(str_vdda, "%lu", prev_vdda);
+
+			  for(uint32_t idx = 0; idx < strlen(str_vdda); idx++)
+			  {
+				 tft_Cursor += eraseMagneto40(tft_Cursor, MAGNETO_40_LINE_0, str_vdda[idx] - ASCII_OFFSET);
+			  }
+
+			  tft_Cursor = MAGNETO_40_START;
+			  sprintf(str_vdda, "%lu", data.vdda);
+
+			  for(uint32_t idx = 0; idx < strlen(str_vdda); idx++)
+			  {
+				  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, str_vdda[idx] - ASCII_OFFSET);
+			  }
+
+			  prev_vdda = data.vdda;
+		  }
+
+
+	  }
+
+	  osDelay(1000);
+  }
+  /* USER CODE END Start_displayTask */
+}
+
+/* USER CODE BEGIN Header_Start_uartCLI */
+/**
+* @brief Function implementing the uartCLI thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Start_uartCLI */
+void Start_uartCLI(void *argument)
+{
+  /* USER CODE BEGIN Start_uartCLI */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(100);
+  }
+  /* USER CODE END Start_uartCLI */
 }
 
 /* Private application code --------------------------------------------------*/
