@@ -85,10 +85,10 @@ void Error_Handler(void);
 #define RMII_RXD0_GPIO_Port GPIOC
 #define RMII_RXD1_Pin GPIO_PIN_5
 #define RMII_RXD1_GPIO_Port GPIOC
-#define SPI3_NCS2_Pin GPIO_PIN_1
-#define SPI3_NCS2_GPIO_Port GPIOB
-#define SPI3_NCS1_Pin GPIO_PIN_2
+#define SPI3_NCS1_Pin GPIO_PIN_1
 #define SPI3_NCS1_GPIO_Port GPIOB
+#define SPI3_NCS2_Pin GPIO_PIN_2
+#define SPI3_NCS2_GPIO_Port GPIOB
 #define TFT_D0_Pin GPIO_PIN_12
 #define TFT_D0_GPIO_Port GPIOF
 #define TFT_D7_Pin GPIO_PIN_13
@@ -151,8 +151,8 @@ void Error_Handler(void);
 #define RMII_TX_EN_GPIO_Port GPIOG
 #define RMII_TXD0_Pin GPIO_PIN_13
 #define RMII_TXD0_GPIO_Port GPIOG
-#define EEPROM_CS_Pin GPIO_PIN_5
-#define EEPROM_CS_GPIO_Port GPIOB
+#define EEPROM_NCS_Pin GPIO_PIN_5
+#define EEPROM_NCS_GPIO_Port GPIOB
 #define NRF1_IRQ_Pin GPIO_PIN_6
 #define NRF1_IRQ_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_7

@@ -30,7 +30,6 @@
 #include <stdio.h>
 
 #include "nrf24l01p_defines.h"
-#include "nrf24l01p_driver_B.h"
 #include "nrf24l01p_driver.h"
 /* USER CODE END Includes */
 
@@ -156,7 +155,6 @@ void Start_nrfCOM(void *argument)
 {
   /* USER CODE BEGIN Start_nrfCOM */
 	payload_t payload = {0};
-	uint32_t frame_idx = 0;
 	bool break_flag = false;
   /* Infinite loop */
   for(;;)
@@ -165,34 +163,35 @@ void Start_nrfCOM(void *argument)
 	  osDelay(500);
 	  NRF_powerUp();
 	  osDelay(500);
-	  NRF_configure_B(false);
-	  printf("NRF STATUS: 0x%02x\n", NRF_getSTATUS_B());
-	  NRF_set_W_ACK_PAYLOAD_B(0, (uint8_t*)"DummyACK", strlen("DummyACK"));
+
+	  printf("NRF STATUS 1 attempt: 0x%02x\n", NRF_getSTATUS());
+	  printf("NRF STATUS 2 attempt: 0x%02x\n", NRF_getSTATUS());
+	  printf("NRF STATUS 3 attempt: 0x%02x\n", NRF_getSTATUS());
+
+	  NRF_configure(false);
+
+	  NRF_set_W_ACK_PAYLOAD(0, (uint8_t*)"DummyACK", strlen("DummyACK"));
 
 	  for(;;)
 	  {
 
 		  NRF_CEactivate();
-		  NRF_CEactivate_B();
 		  osDelay(1000);
 		  NRF_CEdeactivate();
-		  NRF_CEdeactivate_B();
-		  uint8_t status = NRF_getSTATUS_B();
+		  uint8_t status = NRF_getSTATUS();
 
 		  if(status & (1 << RX_DR))
 		  {
-			  NRF_getR_RX_PAYLOAD_B((uint8_t*)&payload, NRF_getR_RX_PL_WID_B());
-			  printf("Frame %ld\n"
-					  "VDDA %ld\n"
+			  NRF_getR_RX_PAYLOAD((uint8_t*)&payload, NRF_getR_RX_PL_WID());
+			  printf("VDDA %ld\n"
 					  "CH0 %ld\n"
 					  "SENS %ld\n"
 					  "-----------\r\n",
-					  frame_idx++,
 					  payload.vdda,
 					  payload.temp_ntc,
 					  payload.temp_sens);
-			  NRF_setSTATUS_B(1 << RX_DR);
-			  NRF_set_W_ACK_PAYLOAD_B(0, (uint8_t*)"DummyACK", strlen("DummyACK"));
+			  NRF_setSTATUS(1 << RX_DR);
+			  NRF_set_W_ACK_PAYLOAD(0, (uint8_t*)"DummyACK", strlen("DummyACK"));
 		  }
 		  if(break_flag){
 			  break;

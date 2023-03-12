@@ -66,9 +66,10 @@
 #define WIFI_DEMO 0
 #define TFT_DEMO 0
 #define NRF_DEMO 0
-#define EEPROM_DEMO 0
+#define EEPROM_DEMO 1
 #define FM_RADIO_DEMO 0
 #define INT_ADC_DEMO 0
+#define DEMO_ENDLESS_LOOP 0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -231,7 +232,7 @@ int main(void)
   NRF_configure(true);
   NRF_configure_B(false);
 #endif
-  while(0)
+  while(DEMO_ENDLESS_LOOP)
   {
 	  int32_t ch12 = 0, temp = 0;
 	  //if(measurement_get(&ch12, &temp))

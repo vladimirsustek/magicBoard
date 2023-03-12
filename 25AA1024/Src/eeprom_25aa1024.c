@@ -14,13 +14,13 @@ extern SPI_HandleTypeDef hspi3;
 
 static uint32_t SPI1_NCSactivate(void)
 {
-	HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(EEPROM_NCS_GPIO_Port, EEPROM_NCS_Pin, GPIO_PIN_RESET);
 	return EEPROM_OK;
 }
 
 static uint32_t SPI1_NCSdeactivate(void)
 {
-	HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(EEPROM_NCS_GPIO_Port, EEPROM_NCS_Pin, GPIO_PIN_SET);
 	return EEPROM_OK;
 }
 
@@ -158,7 +158,7 @@ static uint32_t EEPROM_WriteDataNoLogic(uint32_t address, uint8_t* pData, uint16
 uint32_t EEPROM_WriteData(uint32_t address, uint8_t* pData, uint16_t size)
 {
 	uint8_t status = 0;
-	uint16_t result = 0;
+	uint32_t result = 0;
 
 	uint32_t neareastAdress = address - (address % EEPROM_PAGE_SIZE);
 	uint32_t offSet = address - neareastAdress;
