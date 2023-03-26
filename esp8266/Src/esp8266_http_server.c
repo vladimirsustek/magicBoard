@@ -93,6 +93,9 @@ uint32_t ESP_HTTPinit (void)
 
     result = (result) ? ESP_HARD_ERR : ESP_OK;
 
+    espPort_sendCommand("AT+CIFSR\r\n", strlen("AT+CIFSR\r\n"));
+	ESP_CheckResponse((char*)atRsp_OK, strlen(atRsp_OK), ESP_TIMEOUT_300ms);
+
     return result;
 }
 

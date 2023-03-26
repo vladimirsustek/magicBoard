@@ -43,6 +43,7 @@
 
 #include "rtc.h"
 #include "nvm_app.h"
+#include "esp8266_http_server.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,7 +98,14 @@ const osThreadAttr_t uartCLI_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for wirelessData */
+/* Definitions for WIFITask */
+osThreadId_t WIFITaskHandle;
+const osThreadAttr_t WIFITask_attributes = {
+  .name = "WIFITask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -106,13 +114,17 @@ osMessageQueueId_t wirelessDataHandle;
 const osMessageQueueAttr_t wirelessData_attributes = {
   .name = "wirelessData"
 };
-
+osMessageQueueId_t wifiDataHandle;
+const osMessageQueueAttr_t wifiData_attributes = {
+  .name = "wifiData"
+};
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
 void Start_nrfCOM(void *argument);
 void Start_displayTask(void *argument);
 void Start_uartCLI(void *argument);
+void StartWIFITask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -140,9 +152,15 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* creation of wirelessData */
+  wirelessDataHandle = osMessageQueueNew (16, sizeof(uint16_t), &wirelessData_attributes);
+
+  /* creation of wifiData */
+  wifiDataHandle = osMessageQueueNew (16, sizeof(uint16_t), &wifiData_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
+  wifiDataHandle = osMessageQueueNew (16, sizeof(uint16_t), &wifiData_attributes);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -157,6 +175,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of uartCLI */
   uartCLIHandle = osThreadNew(Start_uartCLI, NULL, &uartCLI_attributes);
+
+  /* creation of WIFITask */
+  WIFITaskHandle = osThreadNew(StartWIFITask, NULL, &WIFITask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -372,6 +393,38 @@ void Start_uartCLI(void *argument)
     osDelay(100);
   }
   /* USER CODE END Start_uartCLI */
+}
+
+/* USER CODE BEGIN Header_StartWIFITask */
+/**
+* @brief Function implementing the WIFITask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartWIFITask */
+void StartWIFITask(void *argument)
+{
+  /* USER CODE BEGIN StartWIFITask */
+
+	char *pHTTPReq = NULL;
+    uint32_t httpReqLng = 0;
+
+
+    NVM_SetWifi(WIFI_ADR_0, (uint8_t*)"\"UPCEDFF983\",\"tb6mhkmxW6ee\"",
+    		strlen("\"UPCEDFF983\",\"tb6mhkmxW6ee\""));
+
+	ESP_HTTPinit();
+
+  /* Infinite loop */
+  for(;;)
+  {
+      if(ESP_RET_OK == ESP_CheckReceiveHTTP(&pHTTPReq, &httpReqLng))
+      {
+          ESP_ProcessHTTP(pHTTPReq, httpReqLng);
+      }
+    osDelay(100);
+  }
+  /* USER CODE END StartWIFITask */
 }
 
 /* Private application code --------------------------------------------------*/
