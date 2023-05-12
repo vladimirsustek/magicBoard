@@ -210,13 +210,11 @@ int main(void)
   DEBUG_PRINT("RDAfrequency %d\r\n", NVM_GetRDAfrequency());
   DEBUG_PRINT("RDAvolume %d\r\n", NVM_GetRDAvolume());
 
-  RTC_TimeTypeDef time;
+  RTC_TimeTypeDef time = {0};
+  RTC_DateTypeDef date = {0};
 
-  time.Hours = 23;
-  time.Minutes = 10;
-  time.Seconds = 0;
-
-  NVM_SetHardcodeTime(&time);
+  HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+  HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
 
 #endif
 

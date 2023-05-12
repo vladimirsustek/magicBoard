@@ -132,7 +132,7 @@ uint32_t printMagneto40Degree(uint32_t xOffset, uint32_t yOffset)
 	return 35;
 }
 
-uint32_t eraseMagneto40Degree(uint32_t yOffset, uint32_t xOffset)
+uint32_t eraseMagneto40Degree(uint32_t xOffset, uint32_t yOffset)
 {
 	fillCircle(yOffset + 70, xOffset + 15, 10, ERASE_COLOR);
 	return 35;

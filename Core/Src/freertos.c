@@ -58,7 +58,16 @@ typedef struct payload
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+typedef struct Measurement
+{
+	int32_t ntc2;
+	int32_t ntc1;
+	int32_t oagp;
+	int32_t curr;
+	int32_t tmpi;
+	int32_t vdda;
+	int32_t tmpe;
+}Measurement_t;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -159,7 +168,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  wirelessDataHandle = osMessageQueueNew (1, sizeof(payload_t), &wirelessData_attributes);
+  wirelessDataHandle = osMessageQueueNew (1, sizeof(Measurement_t), &wirelessData_attributes);
   wifiDataHandle = osMessageQueueNew (16, sizeof(uint16_t), &wifiData_attributes);
   /* USER CODE END RTOS_QUEUES */
 
@@ -220,7 +229,7 @@ void StartDefaultTask(void *argument)
 void Start_nrfCOM(void *argument)
 {
   /* USER CODE BEGIN Start_nrfCOM */
-	payload_t payload = {0};
+	static Measurement_t payload = {0};
 	bool synced = false;
 	uint8_t status = 0;
   /* Infinite loop */
@@ -240,12 +249,8 @@ void Start_nrfCOM(void *argument)
 	  for(;;)
 	  {
 
-		  uint32_t start = osKernelGetTickCount();
 		  NRF_CEactivate();
-		  do {
-			  osDelay(2);
-		  } while(osKernelGetTickCount() < start + 4000 && !NRF_getIRQ());
-
+		  osDelay(200);
 		  NRF_CEdeactivate();
 
 		  status = NRF_getSTATUS();
@@ -253,24 +258,27 @@ void Start_nrfCOM(void *argument)
 		  if(status & (1 << RX_DR))
 		  {
 			  synced = true;
-			  NRF_getR_RX_PAYLOAD((uint8_t*)&payload, sizeof(payload_t));
-			  osMessageQueuePut(wirelessDataHandle, (void*)&payload, 0, 1);
-			  NRF_setSTATUS(1 << RX_DR);
+			  NRF_getR_RX_PAYLOAD((uint8_t*)&payload, sizeof(Measurement_t));
+
+
+			  DEBUG_PRINT("NTC2 %ld\n", payload.ntc2);
+			  DEBUG_PRINT("NTC1 %ld\n", payload.ntc1);
+			  DEBUG_PRINT("OAGP %ld\n", payload.oagp);
+			  DEBUG_PRINT("CURR %ld\n", payload.curr);
+			  DEBUG_PRINT("TMPI %ld\n", payload.tmpi);
+			  DEBUG_PRINT("VDDA %ld\n", payload.vdda);
+			  DEBUG_PRINT("TMPE %ld\n", payload.tmpe);
+
+			  NRF_setSTATUS(1 << RX_DR | 1 << TX_DS);
+
+			  osMessageQueuePut(wirelessDataHandle, (uint8_t*)&payload, 0, 1);
+
 			  NRF_set_W_ACK_PAYLOAD(0, (uint8_t*)"DummyACK", strlen("DummyACK"));
+
 		  }
 		  else
 		  {
 			  synced = false;
-		  }
-
-		  if(synced){
-			  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-			  osDelay(8000);
-		  }
-		  else
-		  {
-			  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
-			  osDelay(1);
 		  }
 	  }
     osDelay(1);
@@ -291,18 +299,24 @@ void Start_displayTask(void *argument)
 	  RTC_TimeTypeDef previous = {0};
 	  RTC_TimeTypeDef current = {0};
 	  RTC_DateTypeDef dummy = {0};
+
+	  previous.Hours = 11;
+	  previous.Minutes = 11;
+	  previous.Seconds = 11;
+	  current.Hours = 0;
+	  current.Minutes = 0;
+	  current.Seconds = 0;
+
+	  bool firstTime = true;
 	  osStatus_t msg_state;
-	  payload_t data;
-	  uint32_t prev_vdda;
+	  Measurement_t data;
+	  int32_t prev_temp = 0;
 	  uint32_t tft_Cursor;
 	  char str_vdda[16];
 
 	  printMagnetoComa();
 
 	  NVM_GetHardcodeTime(&current);
-
-	  HAL_RTC_SetDate(&hrtc, &dummy, RTC_FORMAT_BIN);
-	  HAL_RTC_SetTime(&hrtc, &current, RTC_FORMAT_BIN);
 
   /* Infinite loop */
   for(;;)
@@ -312,8 +326,9 @@ void Start_displayTask(void *argument)
 	  HAL_RTC_GetDate(&hrtc, &dummy, RTC_FORMAT_BIN);
 	  HAL_RTC_GetTime(&hrtc, &current, RTC_FORMAT_BIN);
 
-	  if(memcmp(&current, &previous, sizeof(RTC_TimeTypeDef)))
+	  if(memcmp(&current, &previous, sizeof(RTC_TimeTypeDef)) || firstTime)
 	  {
+		  firstTime = false;
 		  /* Print a size-100 numbers - current time usage*/
 		  if(previous.Hours/10 != current.Hours/10)
 		  {
@@ -340,35 +355,38 @@ void Start_displayTask(void *argument)
 
 	  msg_state = osMessageQueueGet(wirelessDataHandle, (void*)&data, 0, 1);
 
-	  if(msg_state == osOK)
+	  if(msg_state == osOK && data.tmpe != INT32_MIN)
 	  {
-		  DEBUG_PRINT("temp_ntc %lu\n"
-				  "temp_sens %lu\n"
-				  "vdda %lu\n"
-				  "---------------\r\n",
-				  data.temp_ntc,
-				  data.temp_sens,
-				  data.vdda);
 
-		  if(data.vdda != prev_vdda)
+		  data.tmpe= data.tmpe / 100;
+
+		  if(data.tmpe != prev_temp)
 		  {
+
 			  tft_Cursor = MAGNETO_40_START;
-			  sprintf(str_vdda, "%lu", prev_vdda);
+			  sprintf(str_vdda, "%ld.%ld", prev_temp/10, prev_temp%10);
 
 			  for(uint32_t idx = 0; idx < strlen(str_vdda); idx++)
 			  {
 				 tft_Cursor += eraseMagneto40(tft_Cursor, MAGNETO_40_LINE_0, str_vdda[idx] - ASCII_OFFSET);
 			  }
 
+			  tft_Cursor += eraseMagneto40Degree(tft_Cursor, MAGNETO_40_LINE_0);
+			  tft_Cursor += eraseMagneto40(tft_Cursor, MAGNETO_40_LINE_0, 'C' - ASCII_OFFSET);
+
 			  tft_Cursor = MAGNETO_40_START;
-			  sprintf(str_vdda, "%lu", data.vdda);
+			  sprintf(str_vdda, "%ld.%ld", data.tmpe/10, data.tmpe%10);
 
 			  for(uint32_t idx = 0; idx < strlen(str_vdda); idx++)
 			  {
 				  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, str_vdda[idx] - ASCII_OFFSET);
 			  }
 
-			  prev_vdda = data.vdda;
+			  tft_Cursor += printMagneto40Degree(tft_Cursor, MAGNETO_40_LINE_0);
+			  tft_Cursor += printMagneto40(tft_Cursor, MAGNETO_40_LINE_0, 'C' - ASCII_OFFSET);
+
+
+			  prev_temp = data.tmpe;
 		  }
 	  }
 
@@ -408,7 +426,6 @@ void StartWIFITask(void *argument)
 
 	char *pHTTPReq = NULL;
     uint32_t httpReqLng = 0;
-
 
     NVM_SetWifi(WIFI_ADR_0, (uint8_t*)"\"UPCEDFF983\",\"tb6mhkmxW6ee\"",
     		strlen("\"UPCEDFF983\",\"tb6mhkmxW6ee\""));
